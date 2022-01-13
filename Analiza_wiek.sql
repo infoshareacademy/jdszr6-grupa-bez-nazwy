@@ -170,7 +170,7 @@ group by candidate, state;
 ------ ogólne ----
 
 /*sprawdzanie zale¿noœci:
- a) zale¿noœæ - g³ na kandydata - poni¿ej 5 lat (uœrednione wyniki ca³oœciowe)*/
+ a) zale¿noœæ - g³ na kandydata - (uœrednione wyniki ca³oœciowe)*/
  
 
 select distinct candidate, sum(votes) over (partition by candidate) as liczba_g³_kandydat, 
@@ -183,19 +183,9 @@ group by candidate, votes, osoby_poni¿ej_5_hr, osoby_poni¿ej_18_hr, osoby_18_do_
 order by sum(votes) over (partition by candidate) desc
 
 
- /*a) zale¿noœæ - g³ na kandydata - poni¿ej 5 lat (uœrednione wyniki ca³oœciowe)*/
- 
 
-select distinct candidate, sum(votes) over (partition by candidate) as liczba_g³_kandydat, 
-round(avg(osoby_poni¿ej_5_hr) over (partition by candidate), 2) as œr_prct_pon_5,
-round(avg(osoby_poni¿ej_18_hr) over (partition by candidate), 2) as œr_prct_pon_18,
-round(avg(osoby_18_do_65_hr) over (partition by candidate), 2) as œr_prct_pom_18_65,
-round(avg(osoby_min_65_hr) over (partition by candidate), 2) as œr_prct_min_65
-from dane_wiekowe
-group by candidate, votes, osoby_poni¿ej_5_hr, osoby_poni¿ej_18_hr, osoby_18_do_65_hr, osoby_min_65_hr
-order by sum(votes) over (partition by candidate) desc
 
- /*a) zale¿noœæ - g³ na partiê - poni¿ej 5 lat (uœrednione wyniki ca³oœciowe)*/
+ /*a) zale¿noœæ - g³ na partiê - (uœrednione wyniki ca³oœciowe)*/
  
 
 select distinct party, sum(votes) over (partition by party) as liczba_g³_kandydat, 
