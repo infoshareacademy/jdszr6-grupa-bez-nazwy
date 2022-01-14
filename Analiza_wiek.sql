@@ -185,7 +185,7 @@ order by sum(votes) over (partition by candidate) desc
 
 
 
- /*a) zale¿noœæ - g³ na partiê - (uœrednione wyniki ca³oœciowe)*/
+ /*b) zale¿noœæ - g³ na partiê - (uœrednione wyniki ca³oœciowe)*/
  
 
 select distinct party, sum(votes) over (partition by party) as liczba_g³_kandydat, 
