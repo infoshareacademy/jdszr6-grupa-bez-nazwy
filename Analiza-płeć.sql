@@ -20,38 +20,7 @@ join county_facts cf
 on pr.fips_no = cf.fips
 
 
-/*Zestawienie sumaryczne - kandydat ze wzglêdu na wygrane stany*/
 
-with kobiety as 
-(select distinct candidate, round(avg(kobiety_stan),  2) as prct_kobiety, count(*) as liczba_wygranych
-from  
-(select candidate, state, sum(prct_g³_stan_all) as prct_kandydat_stan, 
-dense_rank() over (partition by state order by sum(prct_g³_stan_all) desc) as miejsce, kobiety_stan
-from
-(select distinct state, candidate, prct_g³_stan_all,  kobiety_stan
-from dane_p³eæ
-)dem
-group by candidate, state, kobiety_stan
-order by state) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by candidate),
-mê¿czyŸni as 
-(select distinct candidate, round(avg(mê¿czyŸni_stan),  2) as prct_mê¿czyŸni, count(*) as liczba_wygranych
-from  
-(select candidate, state, sum(prct_g³_stan_all) as prct_kandydat_stan, 
-dense_rank() over (partition by state order by sum(prct_g³_stan_all) desc) as miejsce, mê¿czyŸni_stan
-from
-(select distinct state, candidate, prct_g³_stan_all,  mê¿czyŸni_stan
-from dane_p³eæ
-)dem
-group by candidate, state, mê¿czyŸni_stan
-order by state) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by candidate)
-select kobiety.candidate, prct_kobiety, prct_mê¿czyŸni, kobiety.liczba_wygranych
-from kobiety
-join mê¿czyŸni
-on kobiety.candidate = mê¿czyŸni.candidate
 
 
 /*Zestawienie sumaryczne - partia ze wzglêdu na wygrane stany*/
@@ -88,15 +57,7 @@ join mê¿czyŸni
 on kobiety.party = mê¿czyŸni.party
 
 
-/*sprawdzanie zale¿noœci:
- a) zale¿noœæ - g³ na kandydata - (uœrednione wyniki ca³oœciowe)*/
- 
-select distinct candidate, sum(votes) over (partition by candidate) as liczba_g³_kandydat, 
-round(avg(kobiety_hr) over (partition by candidate), 2) as œr_prct_kobiety,
-round(avg(mê¿czyŸni_hr) over (partition by candidate), 2) as œr_mê¿czyŸni
-from dane_p³eæ
-group by candidate, votes, kobiety_hr, mê¿czyŸni_hr
-order by sum(votes) over (partition by candidate) desc
+
 
 
  /*b) zale¿noœæ - g³ na partiê - (uœrednione wyniki ca³oœciowe)*/
@@ -110,38 +71,7 @@ order by sum(votes) over (partition by party) desc
 
 /* Zestawienie ze wzglêdu na wygrane w hrabstwach */
 
-/*a) wybór kandydata */
 
-with kobiety as 
-(select distinct candidate, round(avg(kobiety_hr),  2) as prct_kobiety, count(*) as liczba_wygranych
-from  
-(select candidate, county, sum(prct_g³_hrabstwo_all) as prct_kandydat_hrabstwo, 
-dense_rank() over (partition by county order by sum(prct_g³_hrabstwo_all) desc) as miejsce, kobiety_hr
-from
-(select distinct county, candidate, prct_g³_hrabstwo_all,  kobiety_hr
-from dane_p³eæ
-)dem
-group by candidate, county, kobiety_hr
-order by county) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by candidate),
-mê¿czyŸni as 
-(select distinct candidate, round(avg(mê¿czyŸni_hr),  2) as prct_mê¿czyŸni, count(*) as liczba_wygranych
-from  
-(select candidate, county, sum(prct_g³_hrabstwo_all) as prct_kandydat_hrabstwo, 
-dense_rank() over (partition by county order by sum(prct_g³_hrabstwo_all) desc) as miejsce, mê¿czyŸni_hr
-from
-(select distinct county, candidate, prct_g³_hrabstwo_all,  mê¿czyŸni_hr
-from dane_p³eæ
-)dem
-group by candidate, county, mê¿czyŸni_hr
-order by county) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by candidate)
-select kobiety.candidate, prct_kobiety, prct_mê¿czyŸni, kobiety.liczba_wygranych
-from kobiety
-join mê¿czyŸni
-on kobiety.candidate = mê¿czyŸni.candidate
 
 /*b) wybór partii */
 
@@ -176,22 +106,7 @@ from kobiety
 join mê¿czyŸni
 on kobiety.party = mê¿czyŸni.party
 
--- badanie korelacji pomiêdzy g³osami danej p³ci, a kandydatem 
 
-select candidate, 
-corr(votes, kobiety_hr) as korelacja_g³osy_kobiet,
-corr(votes, mê¿czyŸni_hr) as korelacja_g³osy_mê¿czyzn
-from dane_p³eæ
-group by candidate
-order by corr(votes, kobiety_hr) desc
-
--- badanie korelacji pomiêdzy g³osami danej p³ci, a kandydatem  - podzia³ na stany
-select candidate, state,
-corr(votes, kobiety_hr) as korelacja_g³osy_kobiet,
-corr(votes, mê¿czyŸni_hr) as korelacja_g³osy_mê¿czyzn
-from dane_p³eæ
-group by candidate, state
-order by corr(votes, kobiety_hr) desc
 
 
 

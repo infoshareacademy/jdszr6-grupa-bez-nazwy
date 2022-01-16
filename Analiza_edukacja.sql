@@ -21,53 +21,7 @@ from primary_results_usa pr
 join county_facts cf 
 on pr.fips_no = cf.fips
 
-/*Zestawienie sumaryczne - kandydat ze wzglêdu na wygrane stany*/
 
-with œrednie as 
-(select distinct candidate, round(avg(osoby_wykszta³cenie_œrednie_stan),  2) as prct_wykszta³cenie_œrednie, count(*) as liczba_wygranych
-from  
-(select candidate, state, sum(prct_g³_stan_all) as prct_kandydat_stan, 
-dense_rank() over (partition by state order by sum(prct_g³_stan_all) desc) as miejsce, osoby_wykszta³cenie_œrednie_stan
-from
-(select distinct state, candidate, prct_g³_stan_all,  osoby_wykszta³cenie_œrednie_stan
-from dane_edukacj
-)dem
-group by candidate, state, osoby_wykszta³cenie_œrednie_stan
-order by state) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by candidate),
-wy¿sze as 
-(select distinct candidate, round(avg(osoby_wykszta³cenie_wy¿sze_stan), 2) as prct_wykszta³cenie_wy¿sze, count(*) as liczba_wygranych
-from  
-(select candidate, state, sum(prct_g³_stan_all) as prct_kandydat_stan, 
-dense_rank() over (partition by state order by sum(prct_g³_stan_all) desc) as miejsce, osoby_wykszta³cenie_wy¿sze_stan
-from
-(select distinct state, candidate, prct_g³_stan_all,  osoby_wykszta³cenie_wy¿sze_stan
-from dane_edukacj
-)dem
-group by candidate, state, osoby_wykszta³cenie_wy¿sze_stan
-order by state) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by candidate),
-bez_wykszta³cenia as 
-( select distinct candidate, round(avg(osoby_bez_wykszta³cenia_stan), 2) as prct_bez_wykszta³cenia, count(*) as liczba_wygranych
-from  
-(select candidate, state, sum(prct_g³_stan_all) as prct_kandydat_stan, 
-dense_rank() over (partition by state order by sum(prct_g³_stan_all) desc) as miejsce, osoby_bez_wykszta³cenia_stan
-from
-(select distinct state, candidate, prct_g³_stan_all,  osoby_bez_wykszta³cenia_stan
-from dane_edukacj
-)dem
-group by candidate, state, osoby_bez_wykszta³cenia_stan
-order by state) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by candidate)
-select œrednie.candidate, prct_wykszta³cenie_œrednie, prct_wykszta³cenie_wy¿sze, prct_bez_wykszta³cenia,  œrednie.liczba_wygranych
-from œrednie
-join wy¿sze
-on œrednie.candidate = wy¿sze.candidate
-join bez_wykszta³cenia
-on œrednie.candidate = bez_wykszta³cenia.candidate
 
 
 /*Zestawienie sumaryczne - partia ze wzglêdu na wygrane stany*/
@@ -119,17 +73,7 @@ join bez_wykszta³cenia
 on œrednie.party = bez_wykszta³cenia.party
 
 
-/*sprawdzanie zale¿noœci:
- a) zale¿noœæ - g³ na kandydata - (uœrednione wyniki ca³oœciowe)*/
- 
 
-select distinct candidate, sum(votes) over (partition by candidate) as liczba_g³_kandydat, 
-round(avg(wykszta³cenie_min_œrednie_hr) over (partition by candidate), 2) as œr_prct_min_œrednie,
-round(avg(wykszta³cenie_min_wy¿sze_hr) over (partition by candidate), 2) as œr_prct_min_wy¿sze,
-round(avg(brak_wykszta³cenia_hr) over (partition by candidate), 2) as œr_prct_brak_wykszta³cenia
-from dane_edukacj
-group by candidate, votes, wykszta³cenie_min_œrednie_hr, wykszta³cenie_min_wy¿sze_hr, brak_wykszta³cenia_hr
-order by sum(votes) over (partition by candidate) desc
 
 
  /*b) zale¿noœæ - g³ na partiê - (uœrednione wyniki ca³oœciowe)*/
@@ -146,68 +90,10 @@ order by sum(votes) over (partition by party) desc
 
 -- analiza wzglêdem wygranych hrabstw --
 
-/*a) wybór kandydata*/
-
-with œrednie as 
-(select distinct candidate, round(avg(wykszta³cenie_min_œrednie_hr),  2) as prct_wykszta³cenie_œrednie, count(*) as liczba_wygranych
-from  
-(select candidate, county, sum(prct_g³_hrabstwo_all) as prct_kandydat_hrabstwo, 
-dense_rank() over (partition by county order by sum(prct_g³_hrabstwo_all) desc) as miejsce, wykszta³cenie_min_œrednie_hr
-from
-(select distinct county, candidate, prct_g³_hrabstwo_all,  wykszta³cenie_min_œrednie_hr
-from dane_edukacj
-)dem
-group by candidate, county, wykszta³cenie_min_œrednie_hr
-order by county) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by candidate),
-wy¿sze as 
-(select distinct candidate, round(avg(wykszta³cenie_min_wy¿sze_hr), 2) as prct_wykszta³cenie_wy¿sze, count(*) as liczba_wygranych
-from  
-(select candidate, county, sum(prct_g³_hrabstwo_all) as prct_kandydat_hrabstwo, 
-dense_rank() over (partition by county order by sum(prct_g³_hrabstwo_all) desc) as miejsce, wykszta³cenie_min_wy¿sze_hr
-from
-(select distinct county, candidate, prct_g³_hrabstwo_all,  wykszta³cenie_min_wy¿sze_hr
-from dane_edukacj
-)dem
-group by candidate, county, wykszta³cenie_min_wy¿sze_hr
-order by county) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by candidate),
-bez_wykszta³cenia as 
-( select distinct candidate, round(avg(brak_wykszta³cenia_hr), 2) as prct_bez_wykszta³cenia, count(*) as liczba_wygranych
-from  
-(select candidate, county, sum(prct_g³_hrabstwo_all) as prct_kandydat_hrabstwo, 
-dense_rank() over (partition by county order by sum(prct_g³_hrabstwo_all) desc) as miejsce, brak_wykszta³cenia_hr
-from
-(select distinct county, candidate, prct_g³_hrabstwo_all,  brak_wykszta³cenia_hr
-from dane_edukacj
-)dem
-group by candidate, county, brak_wykszta³cenia_hr
-order by county) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by candidate)
-select œrednie.candidate, prct_wykszta³cenie_œrednie, prct_wykszta³cenie_wy¿sze, prct_bez_wykszta³cenia,  œrednie.liczba_wygranych
-from œrednie
-join wy¿sze
-on œrednie.candidate = wy¿sze.candidate
-join bez_wykszta³cenia
-on œrednie.candidate = bez_wykszta³cenia.candidate
 
 
---hrabstwa w których wygra³ M.Rubio + wykszta³cenie wy¿sze--
 
-select distinct candidate, county
-from  
-(select candidate, county, sum(prct_g³_hrabstwo_all) as prct_kandydat_hrabstwo, 
-dense_rank() over (partition by county order by sum(prct_g³_hrabstwo_all) desc) as miejsce, wykszta³cenie_min_wy¿sze_hr
-from
-(select distinct county, candidate, prct_g³_hrabstwo_all,  wykszta³cenie_min_wy¿sze_hr
-from dane_edukacj
-)dem
-group by candidate, county, wykszta³cenie_min_wy¿sze_hr
-order by county) miejs
-where miejsce = 1 and candidate ='Marco Rubio' 
+
 
 
 ---
@@ -260,24 +146,7 @@ on œrednie.party = wy¿sze.party
 join bez_wykszta³cenia
 on œrednie.party = bez_wykszta³cenia.party
 
--- badanie korelacji pomiêdzy wykszta³ceniem, a kandydatem 
 
-select candidate, 
-corr(votes, wykszta³cenie_min_œrednie_hr) as korelacja_œrednie,
-corr(votes, wykszta³cenie_min_wy¿sze_hr) as korelacja_wy¿sze,
-corr(votes, brak_wykszta³cenia_hr) as korelacja_brak_wykszta³cenia
-from dane_edukacj
-group by candidate
-order by corr(votes, wykszta³cenie_min_wy¿sze_hr) desc
-
--- badanie korelacji pomiêdzy g³osami danej grupy wiekowej, a kandydatem  - podzia³ na stany
-select candidate, state,
-corr(votes, wykszta³cenie_min_œrednie_hr) as korelacja_œrednie,
-corr(votes, wykszta³cenie_min_wy¿sze_hr) as korelacja_wy¿sze,
-corr(votes, brak_wykszta³cenia_hr) as korelacja_brak_wykszta³cenia
-from dane_edukacj
-group by candidate, state
-order by corr(votes, wykszta³cenie_min_wy¿sze_hr) desc
 
 
 -- badanie korelacji pomiêdzy g³osami danej grupy wiekowej, a parti¹
