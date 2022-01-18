@@ -78,68 +78,6 @@ from v_obliczenia_iv_dojazd;
 select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
 from v_obliczenia_iv_dojazd /*nieu¿yteczny predyktor - 0.02. Czas dojazdu do pracy nie ma wp³ywu na preferencje wyborców*/
 
-/*Zestawienie sumaryczne - partia ze wzglêdu na wygrane stany*/
-
-select distinct party, round(avg(œredni_czas_dojazdu_min_praca_stan),  2) as czas_dojazdu_min, count(*) as liczba_wygranych
-from  
-(select party, state, sum(prct_g³_stan_all) as prct_kandydat_stan, 
-dense_rank() over (partition by state order by sum(prct_g³_stan_all) desc) as miejsce, œredni_czas_dojazdu_min_praca_stan
-from
-(select distinct state, party, prct_g³_stan_all,  œredni_czas_dojazdu_min_praca_stan
-from dane_dojazd
-)dem
-group by party, state, œredni_czas_dojazdu_min_praca_stan
-order by state) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by party
-
-
-
-
- /*b) zale¿noœæ - g³ na partiê - (uœrednione wyniki ca³oœciowe)*/
- 
-
-select distinct party, sum(votes) over (partition by party) as liczba_g³_kandydat, 
-round(avg(œredni_czas_dojazdu_min_praca_hr) over (partition by party), 2) as œr_czas_dojazdu_min
-from dane_dojazd
-group by party, votes, œredni_czas_dojazdu_min_praca_hr
-order by sum(votes) over (partition by party) desc
-
-
-
-/*b) wybór partii*/
-
-select distinct party, round(avg(œredni_czas_dojazdu_min_praca_hr),  2) as œr_czas_dojazdu_min, count(*) as liczba_wygranych
-from  
-(select party, county, sum(prct_g³_hrabstwo_all) as prct_kandydat_hrabstwo, 
-dense_rank() over (partition by county order by sum(prct_g³_hrabstwo_all) desc) as miejsce, œredni_czas_dojazdu_min_praca_hr
-from
-(select distinct county, party, prct_g³_hrabstwo_all, œredni_czas_dojazdu_min_praca_hr
-from dane_dojazd
-)dem
-group by party, county, œredni_czas_dojazdu_min_praca_hr
-order by county) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by party
-
-
-
-
--- badanie korelacji pomiêdzy g³osami dojazd do pracy a parti¹
-
-select party, 
-corr(votes, œredni_czas_dojazdu_min_praca_hr) as korelacja_weterani
-from dane_dojazd
-group by party
-order by corr(votes, œredni_czas_dojazdu_min_praca_hr) desc
-
--- badanie korelacji pomiêdzy g³osami dojazd do pracy - podzia³ na stany
-select party, state,
-corr(votes, œredni_czas_dojazdu_min_praca_hr) as korelacja_weterani
-from dane_dojazd
-group by party, state
-order by corr(votes, œredni_czas_dojazdu_min_praca_hr) desc
-
 
 
 
