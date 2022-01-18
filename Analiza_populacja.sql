@@ -254,7 +254,7 @@ on real_2010.party = zageszczenie_2010.party
 
  /*b) zale¿noœæ - g³ na partiê - (uœrednione wyniki ca³oœciowe) - statystyka nic nie znacz¹ca*//
  
-select distinct party, sum(votes) over (partition by party) as liczba_g³_partiat, 
+select distinct party, sum(votes) over (partition by party) as liczba_g³_partia, 
 round(avg(pop_2010_real_hr) over (partition by party), 2) as œr_pop_rzeczywista,
 round(avg(zageszczenie_2010_hr) over (partition by party), 2) as œr_zageszczenie_2010
 from dane_populacja
