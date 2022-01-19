@@ -5,7 +5,7 @@ where column_name  like 'SEX%'
 
 
 /* tworzenie tabeli pomocniczej zawieraj¹cej wszystkie dane potrzebne do analizy*/
-create temp table dane_p³eæ as 
+create table dane_p³eæ as 
 select state,county,  party, candidate, votes, round(votes * 100 / sum(votes) over (partition by county), 2) as prct_g³_hrabstwo_all,
 round(fraction_votes * 100, 2) as prct_g³_hrabstwo_partia, 
 sum(votes) over (partition by candidate, state)  as liczba_g³_stan,
@@ -20,140 +20,140 @@ join county_facts cf
 on pr.fips_no = cf.fips
 
 
+--WOE i IV kobiety--
+
+/* sprawdzenie ile wyników bêdzie w danej grupie*/
 
 
+select procent_kobiet,  count(*) from /*OK*/
+(select distinct county, state,
+case when kobiety_hr < 48 then '0 - 48 %'
+when kobiety_hr < 49 then '48 - 49 %'
+when kobiety_hr < 50 then '49 - 50 %'
+when kobiety_hr < 51 then '50 - 51 %'
+when kobiety_hr < 52 then '51 - 52 %'
+else 'powy¿ej 52%'
+end as procent_kobiet
+from dane_p³eæ)x
+group by procent_kobiet
 
-/*Zestawienie sumaryczne - partia ze wzglêdu na wygrane stany*/
-
-with kobiety as 
-(select distinct party, round(avg(kobiety_stan),  2) as prct_kobiety, count(*) as liczba_wygranych
-from  
-(select party, state, sum(prct_g³_stan_all) as prct_kandydat_stan, 
-dense_rank() over (partition by state order by sum(prct_g³_stan_all) desc) as miejsce, kobiety_stan
-from
-(select distinct state, party, prct_g³_stan_all,  kobiety_stan
+/*przygotowanie danych do obliczenia WOE i IV*/
+create view v_iv_kobiety as
+with rep as
+(select distinct party, procent_kobiet, sum(votes) over (partition by party, procent_kobiet) as liczba_g³_republikanie,
+sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
+(select party, votes, 
+case when kobiety_hr < 48 then '0 - 48 %'
+when kobiety_hr < 49 then '48 - 49 %'
+when kobiety_hr < 50 then '49 - 50 %'
+when kobiety_hr < 51 then '50 - 51 %'
+when kobiety_hr < 52 then '51 - 52 %'
+else 'powy¿ej 52%'
+end as procent_kobiet
 from dane_p³eæ
-)dem
-group by party, state, kobiety_stan
-order by state) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by party),
-mê¿czyŸni as 
-(select distinct party, round(avg(mê¿czyŸni_stan),  2) as prct_mê¿czyŸni, count(*) as liczba_wygranych
-from  
-(select party, state, sum(prct_g³_stan_all) as prct_kandydat_stan, 
-dense_rank() over (partition by state order by sum(prct_g³_stan_all) desc) as miejsce, mê¿czyŸni_stan
-from
-(select distinct state, party, prct_g³_stan_all,  mê¿czyŸni_stan
+group by party, votes, kobiety_hr
+order by procent_kobiet)m
+where party = 'Republican'),
+dem as
+(select distinct party, procent_kobiet, sum(votes) over (partition by party, procent_kobiet) as liczba_g³_demokraci,
+sum (votes) over (partition by party) as suma_ca³kowita_partia_dem from
+(select party, votes, 
+case when kobiety_hr < 48 then '0 - 48 %'
+when kobiety_hr < 49 then '48 - 49 %'
+when kobiety_hr < 50 then '49 - 50 %'
+when kobiety_hr < 51 then '50 - 51 %'
+when kobiety_hr < 52 then '51 - 52 %'
+else 'powy¿ej 52%'
+end as procent_kobiet
 from dane_p³eæ
-)dem
-group by party, state, mê¿czyŸni_stan
-order by state) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by party)
-select kobiety.party, prct_kobiety, prct_mê¿czyŸni, kobiety.liczba_wygranych
-from kobiety
-join mê¿czyŸni
-on kobiety.party = mê¿czyŸni.party
+group by party, votes, kobiety_hr
+order by procent_kobiet)m
+where party = 'Democrat')
+select rep.procent_kobiet, liczba_g³_republikanie, liczba_g³_demokraci,
+round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
+ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
+(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+from rep
+join dem
+on rep.procent_kobiet = dem.procent_kobiet
 
 
 
+select *
+from v_iv_kobiety;
+select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
+from v_iv_kobiety /*s³aby predyktor - 0.050*/
 
 
- /*b) zale¿noœæ - g³ na partiê - (uœrednione wyniki ca³oœciowe)*/
- 
-select distinct party, sum(votes) over (partition by party) as liczba_g³_kandydat, 
-round(avg(kobiety_hr) over (partition by party), 2) as œr_prct_kobiety,
-round(avg(mê¿czyŸni_hr) over (partition by party), 2) as œr_mê¿czyŸni
+--WOE i IV mê¿czyŸni--
+
+/* sprawdzenie ile wyników bêdzie w danej grupie*/
+
+
+select procent_mê¿czyzn,  count(*) from /*OK*/
+(select distinct county, state,
+case when mê¿czyŸni_hr < 48 then '0 - 48 %'
+when mê¿czyŸni_hr < 49 then '48 - 49 %'
+when mê¿czyŸni_hr < 50 then '49 - 50 %'
+when mê¿czyŸni_hr < 51 then '50 - 51 %'
+when mê¿czyŸni_hr < 52 then '51 - 52 %'
+else 'powy¿ej 52%'
+end as procent_mê¿czyzn
+from dane_p³eæ)x
+group by procent_mê¿czyzn
+
+/*przygotowanie danych do obliczenia WOE i IV*/
+create view v_iv_mezczyzni as
+with rep as
+(select distinct party, procent_mê¿czyzn, sum(votes) over (partition by party, procent_mê¿czyzn) as liczba_g³_republikanie,
+sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
+(select party, votes, 
+case when mê¿czyŸni_hr < 48 then '0 - 48 %'
+when mê¿czyŸni_hr < 49 then '48 - 49 %'
+when mê¿czyŸni_hr < 50 then '49 - 50 %'
+when mê¿czyŸni_hr < 51 then '50 - 51 %'
+when mê¿czyŸni_hr < 52 then '51 - 52 %'
+else 'powy¿ej 52%'
+end as procent_mê¿czyzn
 from dane_p³eæ
-group by party, votes, kobiety_hr, mê¿czyŸni_hr
-order by sum(votes) over (partition by party) desc
-
-/* Zestawienie ze wzglêdu na wygrane w hrabstwach */
-
-
-
-/*b) wybór partii */
-
-with kobiety as 
-(select distinct party, round(avg(kobiety_hr),  2) as prct_kobiety, count(*) as liczba_wygranych
-from  
-(select party, county, sum(prct_g³_hrabstwo_all) as prct_kandydat_hrabstwo, 
-dense_rank() over (partition by county order by sum(prct_g³_hrabstwo_all) desc) as miejsce, kobiety_hr
-from
-(select distinct county, party, prct_g³_hrabstwo_all,  kobiety_hr
+group by party, votes, mê¿czyŸni_hr
+order by procent_mê¿czyzn)m
+where party = 'Republican'),
+dem as
+(select distinct party, procent_mê¿czyzn, sum(votes) over (partition by party, procent_mê¿czyzn) as liczba_g³_demokraci,
+sum (votes) over (partition by party) as suma_ca³kowita_partia_dem from
+(select party, votes, 
+case when mê¿czyŸni_hr < 48 then '0 - 48 %'
+when mê¿czyŸni_hr < 49 then '48 - 49 %'
+when mê¿czyŸni_hr < 50 then '49 - 50 %'
+when mê¿czyŸni_hr < 51 then '50 - 51 %'
+when mê¿czyŸni_hr < 52 then '51 - 52 %'
+else 'powy¿ej 52%'
+end as procent_mê¿czyzn
 from dane_p³eæ
-)dem
-group by party, county, kobiety_hr
-order by county) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by party),
-mê¿czyŸni as 
-(select distinct party, round(avg(mê¿czyŸni_hr),  2) as prct_mê¿czyŸni, count(*) as liczba_wygranych
-from  
-(select party, county, sum(prct_g³_hrabstwo_all) as prct_kandydat_hrabstwo, 
-dense_rank() over (partition by county order by sum(prct_g³_hrabstwo_all) desc) as miejsce, mê¿czyŸni_hr
-from
-(select distinct county, party, prct_g³_hrabstwo_all,  mê¿czyŸni_hr
-from dane_p³eæ
-)dem
-group by party, county, mê¿czyŸni_hr
-order by county) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by party)
-select kobiety.party, prct_kobiety, prct_mê¿czyŸni, kobiety.liczba_wygranych
-from kobiety
-join mê¿czyŸni
-on kobiety.party = mê¿czyŸni.party
+group by party, votes, mê¿czyŸni_hr
+order by procent_mê¿czyzn)m
+where party = 'Democrat')
+select rep.procent_mê¿czyzn, liczba_g³_republikanie, liczba_g³_demokraci,
+round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
+ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
+(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+from rep
+join dem
+on rep.procent_mê¿czyzn = dem.procent_mê¿czyzn
 
 
 
+select *
+from v_iv_mezczyzni;
+select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
+from v_iv_mezczyzni /*s³aby predyktor - 0.053*/
 
 
--- badanie korelacji pomiêdzy g³osami danej p³ci, a parti¹
-
-select party, 
-corr(votes, kobiety_hr) as korelacja_g³_kobiet,
-corr(votes, mê¿czyŸni_hr) as korelacja_g³_mê¿czyzn
-from dane_p³eæ
-group by party
-order by corr(votes, kobiety_hr) desc
-
--- badanie korelacji pomiêdzy g³osami danej p³ci, a parti¹  - podzia³ na stany
-select party, state,
-corr(votes, kobiety_hr) as korelacja_g³_kobiet,
-corr(votes, mê¿czyŸni_hr) as korelacja_g³_mê¿czyzn
-from dane_p³eæ
-group by party, state
-order by corr(votes, kobiety_hr) desc
-
--- dodatkowe -- 
-/* iloœæ hrabstw wygranych przez danego kandydata, gdzie g³osowali na niego w przewadze mê¿czyŸni */
-select candidate,  count(candidate) as iloœæ_hrabstw_wygranych from
-(select * , rank() over (partition by county order by fraction_votes desc) as ranking
-from
-(select *,
-case when kobiety_hr > mê¿czyŸni_hr then 'wiêcej kobiet'
-when kobiety_hr = mê¿czyŸni_hr then 'podzia³ p³ci'
-else 'wiêcej mê¿czyzn'
-end as p³eæ_dominuj¹ca
-from dane_p³eæ)x 
-where p³eæ_dominuj¹ca like '%mê¿%')p 
-where ranking = 1
-group by candidate
-
-/* iloœæ hrabstw wygranych przez danego kandydata, gdzie g³osowali na niego w przewadze kobiety */
-select candidate,  count(candidate) as iloœæ_hrabstw_wygranych from
-(select * , rank() over (partition by county order by fraction_votes desc) as ranking
-from
-(select *,
-case when kobiety_hr > mê¿czyŸni_hr then 'wiêcej kobiet'
-when kobiety_hr = mê¿czyŸni_hr then 'podzia³ p³ci'
-else 'wiêcej mê¿czyzn'
-end as p³eæ_dominuj¹ca
-from dane_p³eæ)x 
-where p³eæ_dominuj¹ca like '%kob%')p 
-where ranking = 1
-group by candidate
+/*zarówno wœród mê¿czyzn jak i kobiet wspó³cznik iV jest s³abym predyktorem - nie przeprowadzono dalszej analizy*/
 
 
