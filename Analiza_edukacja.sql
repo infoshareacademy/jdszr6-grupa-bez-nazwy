@@ -4,7 +4,7 @@ select * from county_facts_dictionary
 where column_name  like 'EDU%'
 
 /* tworzenie tabeli pomocniczej zawieraj¹cej wszystkie dane potrzebne do analizy*/
-create temp table dane_edukacj as 
+create table dane_edukacj as 
 select state,county,  party, candidate, votes, fraction_votes ,
 round(votes * 100 / sum(votes) over (partition by county), 2) as prct_g³_hrabstwo_all,
 round(fraction_votes * 100, 2) as prct_g³_hrabstwo_partia, 
@@ -22,152 +22,199 @@ join county_facts cf
 on pr.fips_no = cf.fips
 
 
+--WOE i IV dla edukacji - wykszta³cenie œrednie --
+
+/* sprawdzenie ile wyników bêdzie w danej grupie*/
 
 
-/*Zestawienie sumaryczne - partia ze wzglêdu na wygrane stany*/
+select procent_wykszta³cenie_œrednie,  count(*) from /*OK*/
+(select distinct county, state,
+case when wykszta³cenie_min_œrednie_hr < 75 then '0 - 75 %'
+when wykszta³cenie_min_œrednie_hr < 80 then '75 - 80 %'
+when wykszta³cenie_min_œrednie_hr < 85 then '80 - 85 %'
+when wykszta³cenie_min_œrednie_hr < 90 then '85 - 90 %'
+else 'powy¿ej 90%'
+end as procent_wykszta³cenie_œrednie
+from dane_edukacj)x
+group by procent_wykszta³cenie_œrednie
 
-with œrednie as 
-(select distinct party, round(avg(osoby_wykszta³cenie_œrednie_stan),  2) as prct_wykszta³cenie_œrednie, count(*) as liczba_wygranych
-from  
-(select party, state, sum(prct_g³_stan_all) as prct_partia_stan, 
-dense_rank() over (partition by state order by sum(prct_g³_stan_all) desc) as miejsce, osoby_wykszta³cenie_œrednie_stan
-from
-(select distinct party, state, prct_g³_stan_all,  osoby_wykszta³cenie_œrednie_stan
+/*przygotowanie danych do obliczenia WOE i IV*/
+create view v_iv_wyk_œrednie as
+with rep as
+(select distinct party, procent_wykszta³cenie_œrednie, sum(votes) over (partition by party, procent_wykszta³cenie_œrednie) as liczba_g³_republikanie,
+sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
+(select party, votes, 
+case when wykszta³cenie_min_œrednie_hr < 75 then '0 - 75 %'
+when wykszta³cenie_min_œrednie_hr < 80 then '75 - 80 %'
+when wykszta³cenie_min_œrednie_hr < 85 then '80 - 85 %'
+when wykszta³cenie_min_œrednie_hr < 90 then '85 - 90 %'
+else 'powy¿ej 90%'
+end as procent_wykszta³cenie_œrednie
 from dane_edukacj
-)dem
-group by party, state, osoby_wykszta³cenie_œrednie_stan
-order by state) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by party),
-wy¿sze as 
-(select distinct party, round(avg(osoby_wykszta³cenie_wy¿sze_stan), 2) as prct_wykszta³cenie_wy¿sze, count(*) as liczba_wygranych
-from  
-(select party, state, sum(prct_g³_stan_all) as prct_partia_stan, 
-dense_rank() over (partition by state order by sum(prct_g³_stan_all) desc) as miejsce, osoby_wykszta³cenie_wy¿sze_stan
-from
-(select distinct state, party, prct_g³_stan_all,  osoby_wykszta³cenie_wy¿sze_stan
+group by party, votes, wykszta³cenie_min_œrednie_hr
+order by procent_wykszta³cenie_œrednie)m
+where party = 'Republican'),
+dem as
+(select distinct party, procent_wykszta³cenie_œrednie, sum(votes) over (partition by party, procent_wykszta³cenie_œrednie) as liczba_g³_demokraci,
+sum (votes) over (partition by party) as suma_ca³kowita_partia_dem from
+(select party, votes, 
+case when wykszta³cenie_min_œrednie_hr < 75 then '0 - 75 %'
+when wykszta³cenie_min_œrednie_hr < 80 then '75 - 80 %'
+when wykszta³cenie_min_œrednie_hr < 85 then '80 - 85 %'
+when wykszta³cenie_min_œrednie_hr < 90 then '85 - 90 %'
+else 'powy¿ej 90%'
+end as procent_wykszta³cenie_œrednie
 from dane_edukacj
-)dem
-group by party, state, osoby_wykszta³cenie_wy¿sze_stan
-order by state) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by party),
-bez_wykszta³cenia as 
-( select distinct party, round(avg(osoby_bez_wykszta³cenia_stan), 2) as prct_bez_wykszta³cenia, count(*) as liczba_wygranych
-from  
-(select party, state, sum(prct_g³_stan_all) as prct_partia_stan, 
-dense_rank() over (partition by state order by sum(prct_g³_stan_all) desc) as miejsce, osoby_bez_wykszta³cenia_stan
-from
-(select distinct state, party, prct_g³_stan_all,  osoby_bez_wykszta³cenia_stan
+group by party, votes, wykszta³cenie_min_œrednie_hr
+order by procent_wykszta³cenie_œrednie)m
+where party = 'Democrat')
+select rep.procent_wykszta³cenie_œrednie, liczba_g³_republikanie, liczba_g³_demokraci,
+round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
+ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
+(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+from rep
+join dem
+on rep.procent_wykszta³cenie_œrednie = dem.procent_wykszta³cenie_œrednie
+
+
+select *
+from v_iv_wyk_œrednie ;
+select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
+from v_iv_wyk_œrednie /*nieu¿yteczny predyktor - 0.015*/
+
+
+
+--WOE i IV dla edukacji - wykszta³cenie wy¿sze --
+
+/* sprawdzenie ile wyników bêdzie w danej grupie*/
+
+
+select procent_wykszta³cenie_wy¿sze,  count(*) from /*OK*/
+(select distinct county, state,
+case when wykszta³cenie_min_wy¿sze_hr < 10 then '0 - 10 %'
+when wykszta³cenie_min_wy¿sze_hr < 15 then '10 - 15 %'
+when wykszta³cenie_min_wy¿sze_hr < 20 then '15 - 20 %'
+when wykszta³cenie_min_wy¿sze_hr < 25 then '20 - 25 %'
+when wykszta³cenie_min_wy¿sze_hr  < 30 then '25 - 30 %'
+when wykszta³cenie_min_wy¿sze_hr  < 35 then '30 - 35 %'
+else 'powy¿ej 35%'
+end as procent_wykszta³cenie_wy¿sze
+from dane_edukacj)x
+group by procent_wykszta³cenie_wy¿sze
+
+/*przygotowanie danych do obliczenia WOE i IV*/
+create view v_iv_wyk_wyzsze as
+with rep as
+(select distinct party, procent_wykszta³cenie_wy¿sze, sum(votes) over (partition by party, procent_wykszta³cenie_wy¿sze) as liczba_g³_republikanie,
+sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
+(select party, votes, 
+case when wykszta³cenie_min_wy¿sze_hr < 10 then '0 - 10 %'
+when wykszta³cenie_min_wy¿sze_hr < 15 then '10 - 15 %'
+when wykszta³cenie_min_wy¿sze_hr < 20 then '15 - 20 %'
+when wykszta³cenie_min_wy¿sze_hr < 25 then '20 - 25 %'
+when wykszta³cenie_min_wy¿sze_hr  < 30 then '25 - 30 %'
+when wykszta³cenie_min_wy¿sze_hr  < 35 then '30 - 35 %'
+else 'powy¿ej 35%'
+end as procent_wykszta³cenie_wy¿sze
 from dane_edukacj
-)dem
-group by party, state, osoby_bez_wykszta³cenia_stan
-order by state) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by party)
-select œrednie.party, prct_wykszta³cenie_œrednie, prct_wykszta³cenie_wy¿sze, prct_bez_wykszta³cenia,  œrednie.liczba_wygranych
-from œrednie
-join wy¿sze
-on œrednie.party = wy¿sze.party
-join bez_wykszta³cenia
-on œrednie.party = bez_wykszta³cenia.party
-
-
-
-
-
- /*b) zale¿noœæ - g³ na partiê - (uœrednione wyniki ca³oœciowe)*/
- 
-
-select distinct party, sum(votes) over (partition by party) as liczba_g³_kandydat, 
-round(avg(wykszta³cenie_min_œrednie_hr) over (partition by party), 2) as œr_prct_min_œrednie,
-round(avg(wykszta³cenie_min_wy¿sze_hr) over (partition by party), 2) as œr_prct_min_wy¿sze,
-round(avg(brak_wykszta³cenia_hr) over (partition by party), 2) as œr_prct_brak_wykszta³cenia
+group by party, votes, wykszta³cenie_min_wy¿sze_hr
+order by procent_wykszta³cenie_wy¿sze)m
+where party = 'Republican'),
+dem as
+(select distinct party, procent_wykszta³cenie_wy¿sze, sum(votes) over (partition by party, procent_wykszta³cenie_wy¿sze) as liczba_g³_demokraci,
+sum (votes) over (partition by party) as suma_ca³kowita_partia_dem from
+(select party, votes, 
+case when wykszta³cenie_min_wy¿sze_hr < 10 then '0 - 10 %'
+when wykszta³cenie_min_wy¿sze_hr < 15 then '10 - 15 %'
+when wykszta³cenie_min_wy¿sze_hr < 20 then '15 - 20 %'
+when wykszta³cenie_min_wy¿sze_hr < 25 then '20 - 25 %'
+when wykszta³cenie_min_wy¿sze_hr  < 30 then '25 - 30 %'
+when wykszta³cenie_min_wy¿sze_hr  < 35 then '30 - 35 %'
+else 'powy¿ej 35%'
+end as procent_wykszta³cenie_wy¿sze
 from dane_edukacj
-group by party, votes, wykszta³cenie_min_œrednie_hr, wykszta³cenie_min_wy¿sze_hr, brak_wykszta³cenia_hr
-order by sum(votes) over (partition by party) desc
+group by party, votes, wykszta³cenie_min_wy¿sze_hr
+order by procent_wykszta³cenie_wy¿sze)m
+where party = 'Democrat')
+select rep.procent_wykszta³cenie_wy¿sze, liczba_g³_republikanie, liczba_g³_demokraci,
+round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
+ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
+(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+from rep
+join dem
+on rep.procent_wykszta³cenie_wy¿sze = dem.procent_wykszta³cenie_wy¿sze
 
 
--- analiza wzglêdem wygranych hrabstw --
+select *
+from v_iv_wyk_wyzsze ;
+select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
+from v_iv_wyk_wyzsze /*s³aby predyktor - 0.083*/
+
+
+--WOE i IV dla edukacji - brak wykszta³cenia --
+
+/* sprawdzenie ile wyników bêdzie w danej grupie*/
 
 
 
+select procent_brak_wykszta³cenia,  count(*) from /*OK*/
+(select distinct county, state,
+case when brak_wykszta³cenia_hr < 10 then '0 - 10 %'
+when brak_wykszta³cenia_hr < 15 then '10 - 15 %'
+when brak_wykszta³cenia_hr < 20 then '15 - 20 %'
+when brak_wykszta³cenia_hr < 25 then '20 - 25 %'
+else 'powy¿ej 25%'
+end as procent_brak_wykszta³cenia
+from dane_edukacj)x
+group by procent_brak_wykszta³cenia
 
-
-
-
----
-
-/*b) wybór partii*/
-
-with œrednie as 
-(select distinct party, round(avg(wykszta³cenie_min_œrednie_hr),  2) as prct_wykszta³cenie_œrednie, count(*) as liczba_wygranych
-from  
-(select party, county, sum(prct_g³_hrabstwo_all) as prct_kandydat_hrabstwo, 
-dense_rank() over (partition by county order by sum(prct_g³_hrabstwo_all) desc) as miejsce, wykszta³cenie_min_œrednie_hr
-from
-(select distinct county, party, prct_g³_hrabstwo_all,  wykszta³cenie_min_œrednie_hr
+/*przygotowanie danych do obliczenia WOE i IV*/
+create view v_iv_brak_wyk as
+with rep as
+(select distinct party, procent_brak_wykszta³cenia, sum(votes) over (partition by party, procent_brak_wykszta³cenia) as liczba_g³_republikanie,
+sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
+(select party, votes, 
+case when brak_wykszta³cenia_hr < 10 then '0 - 10 %'
+when brak_wykszta³cenia_hr < 15 then '10 - 15 %'
+when brak_wykszta³cenia_hr < 20 then '15 - 20 %'
+when brak_wykszta³cenia_hr < 25 then '20 - 25 %'
+else 'powy¿ej 25%'
+end as procent_brak_wykszta³cenia
 from dane_edukacj
-)dem
-group by party, county, wykszta³cenie_min_œrednie_hr
-order by county) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by party),
-wy¿sze as 
-(select distinct party, round(avg(wykszta³cenie_min_wy¿sze_hr), 2) as prct_wykszta³cenie_wy¿sze, count(*) as liczba_wygranych
-from  
-(select party, county, sum(prct_g³_hrabstwo_all) as prct_kandydat_hrabstwo, 
-dense_rank() over (partition by county order by sum(prct_g³_hrabstwo_all) desc) as miejsce, wykszta³cenie_min_wy¿sze_hr
-from
-(select distinct county, party, prct_g³_hrabstwo_all,  wykszta³cenie_min_wy¿sze_hr
+group by party, votes, brak_wykszta³cenia_hr
+order by procent_brak_wykszta³cenia)m
+where party = 'Republican'),
+dem as
+(select distinct party, procent_brak_wykszta³cenia, sum(votes) over (partition by party, procent_brak_wykszta³cenia) as liczba_g³_demokraci,
+sum (votes) over (partition by party) as suma_ca³kowita_partia_dem from
+(select party, votes, 
+case when brak_wykszta³cenia_hr < 10 then '0 - 10 %'
+when brak_wykszta³cenia_hr < 15 then '10 - 15 %'
+when brak_wykszta³cenia_hr < 20 then '15 - 20 %'
+when brak_wykszta³cenia_hr < 25 then '20 - 25 %'
+else 'powy¿ej 25%'
+end as procent_brak_wykszta³cenia
 from dane_edukacj
-)dem
-group by party, county, wykszta³cenie_min_wy¿sze_hr
-order by county) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by party),
-bez_wykszta³cenia as 
-( select distinct party, round(avg(brak_wykszta³cenia_hr), 2) as prct_bez_wykszta³cenia, count(*) as liczba_wygranych
-from  
-(select party, county, sum(prct_g³_hrabstwo_all) as prct_kandydat_hrabstwo, 
-dense_rank() over (partition by county order by sum(prct_g³_hrabstwo_all) desc) as miejsce, brak_wykszta³cenia_hr
-from
-(select distinct county, party, prct_g³_hrabstwo_all,  brak_wykszta³cenia_hr
-from dane_edukacj
-)dem
-group by party, county, brak_wykszta³cenia_hr
-order by county) miejs
-where miejsce = 1 /*filtorwanie po stanach, gdzie dana partia wygra³a*/
-group by party)
-select œrednie.party, prct_wykszta³cenie_œrednie, prct_wykszta³cenie_wy¿sze, prct_bez_wykszta³cenia,  œrednie.liczba_wygranych
-from œrednie
-join wy¿sze
-on œrednie.party = wy¿sze.party
-join bez_wykszta³cenia
-on œrednie.party = bez_wykszta³cenia.party
+group by party, votes, brak_wykszta³cenia_hr
+order by procent_brak_wykszta³cenia)m
+where party = 'Democrat')
+select rep.procent_brak_wykszta³cenia, liczba_g³_republikanie, liczba_g³_demokraci,
+round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
+ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
+(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+from rep
+join dem
+on rep.procent_brak_wykszta³cenia = dem.procent_brak_wykszta³cenia
 
 
-
-
--- badanie korelacji pomiêdzy g³osami danej grupy wiekowej, a parti¹
-
-select party, 
-corr(votes, wykszta³cenie_min_œrednie_hr) as korelacja_œrednie,
-corr(votes, wykszta³cenie_min_wy¿sze_hr) as korelacja_wy¿sze,
-corr(votes, brak_wykszta³cenia_hr) as korelacja_brak_wykszta³cenia
-from dane_edukacj
-group by party
-
--- badanie korelacji pomiêdzy g³osami danej grupy wiekowej, a parti¹  - podzia³ na stany
-select party, state,
-corr(votes, wykszta³cenie_min_œrednie_hr) as korelacja_œrednie,
-corr(votes, wykszta³cenie_min_wy¿sze_hr) as korelacja_wy¿sze,
-corr(votes, brak_wykszta³cenia_hr) as korelacja_brak_wykszta³cenia
-from dane_edukacj
-group by party, state
-order by corr(votes, wykszta³cenie_min_wy¿sze_hr) desc
-
-
-
-
+select *
+from v_iv_brak_wyk ;
+select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
+from v_iv_brak_wyk /*nieu¿yteczny predyktor - 0.014*/
 
