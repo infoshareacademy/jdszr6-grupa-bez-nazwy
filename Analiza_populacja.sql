@@ -94,8 +94,8 @@ from v_iv_populacj /*œredni predyktor - 0.152*/
 /* wykaz hrabstw stosunek procentowy g³osów na dan¹ patiê (w podziale na grupy iloœciowe) - do pokazania na mapie*/
 
 with stany as
-(select county, state, wielkoœæ_hrabstwa from
-(select  distinct county, state, 
+(select county, state, party, wielkoœæ_hrabstwa from
+(select  distinct county, state, party,
 case when pop_2010_real_hr < 10000 then '0 - 10 tyœ'
 when pop_2010_real_hr < 30000 then '10 - 30 tyœ'
 when pop_2010_real_hr < 50000 then '30 - 50 tyœ'
@@ -104,18 +104,16 @@ when pop_2010_real_hr < 300000 then '100 - 300 tyœ'
 else 'powy¿ej 300 tyœ'
 end as wielkoœæ_hrabstwa
 from dane_populacja)x) 
-select county, state, stany.wielkoœæ_hrabstwa,
-round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2) as prct_g³osów_republikanie,
-100 - round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2) as prct_g³osów_demokraci,
-case when round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2) > 100 - round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2)
+select county, state, party, stany.wielkoœæ_hrabstwa,
+liczba_g³_republikanie, liczba_g³_demokraci,
+case when liczba_g³_republikanie  > liczba_g³_demokraci
 then 'Republikanie'
-when round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2) < 100 - round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2)
+when liczba_g³_republikanie  < liczba_g³_demokraci
 then 'Demokraci'
 end as winner
 from stany
-join v_iv_populacj vip 
-on stany.wielkoœæ_hrabstwa = vip.wielkoœæ_hrabstwa
-order by stany.wielkoœæ_hrabstwa
+join v_iv_populacj vip
+on stany.wielkoœæ_hrabstwa = vip.wielkoœæ_hrabstwa /*poprawne*/
 
 
 
@@ -189,8 +187,8 @@ from v_iv_zageszczenie /*œredni predyktor - 0.191*/
 /* wykaz hrabstw stosunek procentowy g³osów na dan¹ patiê (w podziale na grupy iloœciowe)*/
 
 with stany as
-(select county, state, zagêszczenie_hrabstwa from
-(select  distinct county, state, 
+(select county, state, party, zagêszczenie_hrabstwa from
+(select  distinct county, state, party,
 case when zageszczenie_2010_hr < 50 then '0 - 50'
 when zageszczenie_2010_hr < 100 then '50 - 100'
 when zageszczenie_2010_hr < 200 then '100 - 200'
@@ -199,17 +197,16 @@ when zageszczenie_2010_hr< 1000 then '500 - 1000'
 else '1000 +'
 end as zagêszczenie_hrabstwa
 from dane_populacja)x) 
-select county, state, stany.zagêszczenie_hrabstwa,
-round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2) as prct_g³osów_republikanie,
-100 - round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2) as prct_g³osów_demokraci,
-case when round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2) > 100 - round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2)
+select county, state, party, stany.zagêszczenie_hrabstwa,
+liczba_g³_republikanie, liczba_g³_demokraci,
+case when liczba_g³_republikanie  > liczba_g³_demokraci
 then 'Republikanie'
-when round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2) < 100 - round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2)
+when liczba_g³_republikanie  < liczba_g³_demokraci
 then 'Demokraci'
 end as winner
 from stany
 join v_iv_zageszczenie vig
-on stany.zagêszczenie_hrabstwa = vig.zagêszczenie_hrabstwa
+on stany.zagêszczenie_hrabstwa = vig.zagêszczenie_hrabstwa /*poprawne*/
 
 
 

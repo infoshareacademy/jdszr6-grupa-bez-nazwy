@@ -87,8 +87,8 @@ from v_iv_wiek_18_65 /*œredni predyktor - 0.193*/
 
 /* zestawienie harbstw - do pokazania na mapie */
 with stany as
-(select county, state, procent_wiek_œredni from
-(select  distinct county, state, 
+(select county, state, party, procent_wiek_œredni from
+(select  distinct county, state, party,
 case when osoby_18_do_65_hr < 55 then '0 - 55 %'
 when osoby_18_do_65_hr < 58 then '55 - 58 %'
 when osoby_18_do_65_hr < 60 then '58 - 60 %'
@@ -96,17 +96,16 @@ when osoby_18_do_65_hr < 63 then '60 - 65 %'
 else 'powy¿ej 65 %'
 end as procent_wiek_œredni
 from dane_wiekowe)x) 
-select county, state, stany.procent_wiek_œredni,
-round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2) as prct_g³osów_republikanie,
-100 - round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2) as prct_g³osów_demokraci,
-case when round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2) > 100 - round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2)
+select county, state, party, stany.procent_wiek_œredni,
+liczba_g³_republikanie, liczba_g³_demokraci,
+case when liczba_g³_republikanie  > liczba_g³_demokraci
 then 'Republikanie'
-when round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2) < 100 - round(liczba_g³_republikanie * 100 / (liczba_g³_republikanie + liczba_g³_demokraci), 2)
+when liczba_g³_republikanie  < liczba_g³_demokraci
 then 'Demokraci'
 end as winner
 from stany
-join v_iv_wiek_18_65
-on stany.procent_wiek_œredni= v_iv_wiek_18_65.procent_wiek_œredni
+join v_iv_wiek_18_65 viœ
+on stany.procent_wiek_œredni = viœ.procent_wiek_œredni /*poprawne*/
 
 /*Zestawienie sumaryczne - partia ze wzglêdu na wygrane stany*/
 
