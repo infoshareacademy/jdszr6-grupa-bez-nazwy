@@ -105,12 +105,7 @@ else 'powy¿ej 300 tyœ'
 end as wielkoœæ_hrabstwa
 from dane_populacja)x) 
 select county, state, party, stany.wielkoœæ_hrabstwa,
-liczba_g³_republikanie, liczba_g³_demokraci,
-case when liczba_g³_republikanie  > liczba_g³_demokraci
-then 'Republikanie'
-when liczba_g³_republikanie  < liczba_g³_demokraci
-then 'Demokraci'
-end as winner
+liczba_g³_republikanie, liczba_g³_demokraci
 from stany
 join v_iv_populacj vip
 on stany.wielkoœæ_hrabstwa = vip.wielkoœæ_hrabstwa /*poprawne*/
@@ -123,8 +118,9 @@ on stany.wielkoœæ_hrabstwa = vip.wielkoœæ_hrabstwa /*poprawne*/
 
 /* sprawdzenie ile wyników bêdzie w danej grupie*/
 
+
 select zagêszczenie_hrabstwa, count(*) from
-(select party, votes, county,
+(select distinct county, state,
 case when zageszczenie_2010_hr < 50 then '0 - 50'
 when zageszczenie_2010_hr < 100 then '50 - 100'
 when zageszczenie_2010_hr < 200 then '100 - 200'
@@ -134,6 +130,7 @@ else '1000 +'
 end as zagêszczenie_hrabstwa
 from dane_populacja)x
 group by zagêszczenie_hrabstwa
+
 
 /*przygotowanie danych do obliczenia WOE i IV*/
 create view v_iv_zageszczenie as
@@ -198,12 +195,7 @@ else '1000 +'
 end as zagêszczenie_hrabstwa
 from dane_populacja)x) 
 select county, state, party, stany.zagêszczenie_hrabstwa,
-liczba_g³_republikanie, liczba_g³_demokraci,
-case when liczba_g³_republikanie  > liczba_g³_demokraci
-then 'Republikanie'
-when liczba_g³_republikanie  < liczba_g³_demokraci
-then 'Demokraci'
-end as winner
+liczba_g³_republikanie, liczba_g³_demokraci
 from stany
 join v_iv_zageszczenie vig
 on stany.zagêszczenie_hrabstwa = vig.zagêszczenie_hrabstwa /*poprawne*/
@@ -302,6 +294,178 @@ corr(votes, zageszczenie_2010_hr) as korelacja_zageszczenie_2010
 from dane_populacja
 group by party
 order by corr(votes, pop_2010_real_hr) desc
+
+-- badanie korelacji pomiêdzy g³osami populacji, a parti¹ - przeliczneie na stany
+select party, state,
+corr(votes, pop_2010_real_hr) as korelacja_populacja_2010,
+corr(votes, zageszczenie_2010_hr) as korelacja_zageszczenie_2010
+from dane_populacja
+where state ='Nevada'
+group by party, state
+
+
+--- dodatkowo ---
+
+--WOE i IV dla populacji w 2010 roku -- w pzeliczeniu na stany
+
+/* sprawdzenie ile wyników bêdzie w danej grupie*/
+
+
+select wielkoœæ_stanu,  count(*) from /*OK*/
+(select distinct state,
+case when pop_2010_real_stan < 5000000 then '0 - 5 mln'
+when pop_2010_real_stan < 10000000 then '5 - 10 mln'
+when pop_2010_real_stan < 15000000 then '10 - 15 mln'
+when pop_2010_real_stan < 20000000 then '15 - 20 mln'
+when pop_2010_real_stan < 30000000 then '20 - 30 mln'
+when pop_2010_real_stan < 40000000 then '30 - 40 mln'
+else 'powy¿ej 40 mln'
+end as wielkoœæ_stanu
+from dane_populacja)x
+group by wielkoœæ_stanu
+
+/*przygotowanie danych do obliczenia WOE i IV*/
+create view v_iv_populacja_stan as
+with rep as
+(select distinct party, wielkoœæ_stanu, sum(votes) over (partition by party, wielkoœæ_stanu) as liczba_g³_republikanie,
+sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
+(select party, votes, 
+case when pop_2010_real_stan < 5000000 then '0 - 5 mln'
+when pop_2010_real_stan < 10000000 then '5 - 10 mln'
+when pop_2010_real_stan < 15000000 then '10 - 15 mln'
+when pop_2010_real_stan < 20000000 then '15 - 20 mln'
+when pop_2010_real_stan < 30000000 then '20 - 30 mln'
+when pop_2010_real_stan < 40000000 then '30 - 40 mln'
+else 'powy¿ej 40 mln'
+end as wielkoœæ_stanu
+from dane_populacja
+group by party, votes, pop_2010_real_stan
+order by wielkoœæ_stanu)m
+where party = 'Republican'),
+dem as
+(select distinct party, wielkoœæ_stanu, sum(votes) over (partition by party, wielkoœæ_stanu) as liczba_g³_demokraci,
+sum (votes) over (partition by party) as suma_ca³kowita_partia_dem from
+(select party, votes, 
+case when pop_2010_real_stan < 5000000 then '0 - 5 mln'
+when pop_2010_real_stan < 10000000 then '5 - 10 mln'
+when pop_2010_real_stan < 15000000 then '10 - 15 mln'
+when pop_2010_real_stan < 20000000 then '15 - 20 mln'
+when pop_2010_real_stan < 30000000 then '20 - 30 mln'
+when pop_2010_real_stan < 40000000 then '30 - 40 mln'
+else 'powy¿ej 40 mln'
+end as wielkoœæ_stanu
+from dane_populacja
+group by party, votes, pop_2010_real_stan
+order by wielkoœæ_stanu)m
+where party = 'Democrat')
+select rep.wielkoœæ_stanu, liczba_g³_republikanie, liczba_g³_demokraci,
+round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
+ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
+(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+from rep
+join dem
+on rep.wielkoœæ_stanu = dem.wielkoœæ_stanu
+
+
+
+select *
+from v_iv_populacja_stan ;
+select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
+from v_iv_populacja_stan /*s³aby predyktor - 0.049 - brak dalszej analizy*/
+
+
+-- zagêszczenie -- stany --
+
+--WOE i IV dla zagêszczenia w 2010 roku --
+
+/* sprawdzenie ile wyników bêdzie w danej grupie*/
+
+
+select zagêszczenie_stanu, count(*) from
+(select distinct state,
+case when zageszczenie_2010_stan < 50 then '0 - 50'
+when zageszczenie_2010_stan < 100 then '50 - 100'
+when zageszczenie_2010_stan < 150 then '100 - 150'
+when zageszczenie_2010_stan < 200 then '150 - 200'
+when zageszczenie_2010_stan < 500 then '200 - 500'
+when zageszczenie_2010_stan < 1000 then '500 - 1000'
+else '1000 +'
+end as zagêszczenie_stanu
+from dane_populacja)x
+group by zagêszczenie_stanu
+
+/*przygotowanie danych do obliczenia WOE i IV*/
+create view v_iv_zageszczenie_stan as
+with rep as
+(select distinct party, zagêszczenie_stanu, sum(votes) over (partition by party, zagêszczenie_stanu) as liczba_g³_republikanie,
+sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
+(select party, votes, 
+case when zageszczenie_2010_stan < 50 then '0 - 50'
+when zageszczenie_2010_stan < 100 then '50 - 100'
+when zageszczenie_2010_stan < 150 then '100 - 150'
+when zageszczenie_2010_stan < 200 then '150 - 200'
+when zageszczenie_2010_stan < 500 then '200 - 500'
+when zageszczenie_2010_stan < 1000 then '500 - 1000'
+else '1000 +'
+end as zagêszczenie_stanu
+from dane_populacja
+group by party, votes, zageszczenie_2010_stan
+order by zagêszczenie_stanu)m
+where party = 'Republican'),
+dem as
+(select distinct party, zagêszczenie_stanu, sum(votes) over (partition by party, zagêszczenie_stanu) as liczba_g³_demokraci,
+sum (votes) over (partition by party) as suma_ca³kowita_partia_dem from
+(select party, votes, 
+case when zageszczenie_2010_stan < 50 then '0 - 50'
+when zageszczenie_2010_stan < 100 then '50 - 100'
+when zageszczenie_2010_stan < 150 then '100 - 150'
+when zageszczenie_2010_stan < 200 then '150 - 200'
+when zageszczenie_2010_stan < 500 then '200 - 500'
+when zageszczenie_2010_stan < 1000 then '500 - 1000'
+else '1000 +'
+end as zagêszczenie_stanu
+from dane_populacja
+group by party, votes, zageszczenie_2010_stan
+order by zagêszczenie_stanu)m
+where party = 'Democrat')
+select rep.zagêszczenie_stanu, liczba_g³_republikanie, liczba_g³_demokraci,
+round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
+ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
+(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+from rep
+join dem
+on rep.zagêszczenie_stanu = dem.zagêszczenie_stanu
+
+
+select *
+from v_iv_zageszczenie_stan;
+select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
+from v_iv_zageszczenie_stan /*œredni predyktor - 0.163*/
+
+
+-- wykaz stanów -- 
+
+with stany as
+(select  state, party, zagêszczenie_stanu from
+(select  distinct state, party,
+case when zageszczenie_2010_stan < 50 then '0 - 50'
+when zageszczenie_2010_stan < 100 then '50 - 100'
+when zageszczenie_2010_stan < 150 then '100 - 150'
+when zageszczenie_2010_stan < 200 then '150 - 200'
+when zageszczenie_2010_stan < 500 then '200 - 500'
+when zageszczenie_2010_stan < 1000 then '500 - 1000'
+else '1000 +'
+end as zagêszczenie_stanu
+from dane_populacja)x) 
+select  state, party, stany.zagêszczenie_stanu,
+liczba_g³_republikanie, liczba_g³_demokraci
+from stany
+join v_iv_zageszczenie_stan vis
+on stany.zagêszczenie_stanu = vis.zagêszczenie_stanu /*poprawne*/
 
 
 

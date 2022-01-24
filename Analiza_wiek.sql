@@ -97,12 +97,7 @@ else 'powy¿ej 65 %'
 end as procent_wiek_œredni
 from dane_wiekowe)x) 
 select county, state, party, stany.procent_wiek_œredni,
-liczba_g³_republikanie, liczba_g³_demokraci,
-case when liczba_g³_republikanie  > liczba_g³_demokraci
-then 'Republikanie'
-when liczba_g³_republikanie  < liczba_g³_demokraci
-then 'Demokraci'
-end as winner
+liczba_g³_republikanie, liczba_g³_demokraci
 from stany
 join v_iv_wiek_18_65 viœ
 on stany.procent_wiek_œredni = viœ.procent_wiek_œredni /*poprawne*/
