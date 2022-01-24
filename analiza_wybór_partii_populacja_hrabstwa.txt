@@ -1,0 +1,3 @@
+"party","średnia_wielkość_populacji","średnia_zageszczenie_populacji","liczba_wygranych"
+Democrat,178873.54,672.63,708
+Republican,72856.57,127.97,2091
