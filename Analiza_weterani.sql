@@ -20,8 +20,8 @@ on pr.fips_no = cf.fips
 /* sprawdzenie ile wyników bêdzie w danej grupie*/
 
 
-select czas_dojazdu, count(*) from
-(select party, votes, county,
+select liczba_weteranów, count(*) from
+(select distinct county, state,
 case  
 when weterani_hr < 1000 then '0 - 1 tyœ'
 when weterani_hr < 2000 then '1 - 2 tyœ'
@@ -30,9 +30,9 @@ when weterani_hr < 5000 then '3 - 5 tyœ'
 when weterani_hr < 10000 then '5 - 10 tyœ'
 when weterani_hr < 20000 then '10 - 20 tyœ'
 else 'powy¿ej 20 tyœ'
-end as czas_liczba_weteranów
+end as liczba_weteranów
 from dane_weterani)x
-group by czas_dojazdu
+group by liczba_weteranów
 
 /*przygotowanie danych do obliczenia WOE i IV*/
 create view v_obliczenia_iv_weterani as

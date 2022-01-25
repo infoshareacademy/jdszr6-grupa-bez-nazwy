@@ -21,8 +21,10 @@ on pr.fips_no = cf.fips
 
 /* sprawdzenie ile wyników bêdzie w danej grupie*/
 
-select czas_dojazdu, count(*) from
-(select party, votes, county,
+
+
+select czas_dojazdu, count(*) from /*do sprawdzenia*/
+(select distinct county, state,
 case  
 when œredni_czas_dojazdu_min_praca_hr < 15 then '0 - 15 min'
 when œredni_czas_dojazdu_min_praca_hr < 20 then '15 - 20 min'
