@@ -112,8 +112,6 @@ on stany.wielkoœæ_hrabstwa = vip.wielkoœæ_hrabstwa /*poprawne*/
 
 
 
-
-
 --WOE i IV dla zagêszczenia w 2010 roku --
 
 /* sprawdzenie ile wyników bêdzie w danej grupie*/
@@ -466,6 +464,20 @@ liczba_g³_republikanie, liczba_g³_demokraci
 from stany
 join v_iv_zageszczenie_stan vis
 on stany.zagêszczenie_stanu = vis.zagêszczenie_stanu /*poprawne*/
+
+-- hrabstwa vs wielkoœæ vs zagêszczenie --
+
+select state, county, party, pop_2010_real_hr, zageszczenie_2010_hr,
+sum(votes) as liczba_glosow
+from dane_populacja dp 
+where party = 'Republican'
+group by state, county, party, pop_2010_real_hr, zageszczenie_2010_hr
+
+select state, county, party, pop_2010_real_hr, zageszczenie_2010_hr,
+sum(votes) as liczba_glosow
+from dane_populacja dp 
+where party = 'Democrat'
+group by state, county, party, pop_2010_real_hr, zageszczenie_2010_hr
 
 
 
