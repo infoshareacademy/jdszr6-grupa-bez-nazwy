@@ -34,14 +34,14 @@ select procent_wiek_œredni,  count(*) from /*OK*/
 case when osoby_18_do_65_hr < 55 then '0 - 55 %'
 when osoby_18_do_65_hr < 58 then '55 - 58 %'
 when osoby_18_do_65_hr < 60 then '58 - 60 %'
-when osoby_18_do_65_hr < 63 then '60 - 65 %'
-else 'powy¿ej 65 %'
+when osoby_18_do_65_hr < 63 then '60 - 63 %'
+else 'powy¿ej 63 %'
 end as procent_wiek_œredni
 from dane_wiekowe)x
 group by procent_wiek_œredni
 
 /*przygotowanie danych do obliczenia WOE i IV*/
-create view v_iv_wiek_18_65 as
+create view v_iv_wieku_18_65 as
 with rep as
 (select distinct party, procent_wiek_œredni, sum(votes) over (partition by party, procent_wiek_œredni) as liczba_g³_republikanie,
 sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
@@ -49,8 +49,8 @@ sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
 case when osoby_18_do_65_hr < 55 then '0 - 55 %'
 when osoby_18_do_65_hr < 58 then '55 - 58 %'
 when osoby_18_do_65_hr < 60 then '58 - 60 %'
-when osoby_18_do_65_hr < 63 then '60 - 65 %'
-else 'powy¿ej 65 %'
+when osoby_18_do_65_hr < 63 then '60 - 63 %'
+else 'powy¿ej 63 %'
 end as procent_wiek_œredni
 from dane_wiekowe
 group by party, votes, osoby_18_do_65_hr)m
@@ -62,8 +62,8 @@ sum (votes) over (partition by party) as suma_ca³kowita_partia_dem from
 case when osoby_18_do_65_hr < 55 then '0 - 55 %'
 when osoby_18_do_65_hr < 58 then '55 - 58 %'
 when osoby_18_do_65_hr < 60 then '58 - 60 %'
-when osoby_18_do_65_hr < 63 then '60 - 65 %'
-else 'powy¿ej 65 %'
+when osoby_18_do_65_hr < 63 then '60 - 63 %'
+else 'powy¿ej 63 %'
 end as procent_wiek_œredni
 from dane_wiekowe
 group by party, votes, osoby_18_do_65_hr)m
@@ -81,9 +81,9 @@ on rep.procent_wiek_œredni = dem.procent_wiek_œredni
 
 
 select *
-from v_iv_wiek_18_65;
+from v_iv_wieku_18_65;
 select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
-from v_iv_wiek_18_65 /*œredni predyktor - 0.193*/
+from v_iv_wieku_18_65 /*œredni predyktor - 0.151*/
 
 /* zestawienie harbstw - do pokazania na mapie */
 with stany as
@@ -92,8 +92,8 @@ with stany as
 case when osoby_18_do_65_hr < 55 then '0 - 55 %'
 when osoby_18_do_65_hr < 58 then '55 - 58 %'
 when osoby_18_do_65_hr < 60 then '58 - 60 %'
-when osoby_18_do_65_hr < 63 then '60 - 65 %'
-else 'powy¿ej 65 %'
+when osoby_18_do_65_hr < 63 then '60 - 63 %'
+else 'powy¿ej 63 %'
 end as procent_wiek_œredni
 from dane_wiekowe)x) 
 select county, state, party, stany.procent_wiek_œredni,
@@ -163,6 +163,94 @@ select party, state,
 corr(votes, osoby_18_do_65_hr) as korelacja_18_do_65
 from dane_wiekowe
 group by party, state
+
+
+--- wyliczenie WOE i IW na stany ---
+
+--WOE i IV dla udzia³u wieku œredniego  --
+
+/* sprawdzenie ile wyników bêdzie w danej grupie*/
+
+select procent_wiek_œredni_stan,  count(*) from /*OK*/
+(select distinct state,
+case when osoby_18_do_65_stan < 57 then '0 - 57 %'
+when osoby_18_do_65_stan < 58 then '57 - 58 %'
+when osoby_18_do_65_stan < 59 then '58 - 59 %'
+when osoby_18_do_65_stan < 60 then '59 - 60 %'
+when osoby_18_do_65_stan < 61 then '60 - 61 %'
+when osoby_18_do_65_stan < 62 then '61 - 62 %'
+else 'powy¿ej 62 %'
+end as procent_wiek_œredni_stan
+from dane_wiekowe)x
+group by procent_wiek_œredni_stan
+
+/*przygotowanie danych do obliczenia WOE i IV*/
+create view v_iv_wiek_18_65_stan as
+with rep as
+(select distinct party, procent_wiek_œredni_stan, sum(votes) over (partition by party, procent_wiek_œredni_stan) as liczba_g³_republikanie,
+sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
+(select party, votes, 
+case when osoby_18_do_65_stan < 57 then '0 - 57 %'
+when osoby_18_do_65_stan < 58 then '57 - 58 %'
+when osoby_18_do_65_stan < 59 then '58 - 59 %'
+when osoby_18_do_65_stan < 60 then '59 - 60 %'
+when osoby_18_do_65_stan < 61 then '60 - 61 %'
+when osoby_18_do_65_stan < 62 then '61 - 62 %'
+else 'powy¿ej 62 %'
+end as procent_wiek_œredni_stan
+from dane_wiekowe
+group by party, votes, osoby_18_do_65_stan)m
+where party = 'Republican'),
+dem as
+(select distinct party, procent_wiek_œredni_stan, sum(votes) over (partition by party, procent_wiek_œredni_stan) as liczba_g³_demokraci,
+sum (votes) over (partition by party) as suma_ca³kowita_partia_dem from
+(select party, votes, 
+case when osoby_18_do_65_stan < 57 then '0 - 57 %'
+when osoby_18_do_65_stan < 58 then '57 - 58 %'
+when osoby_18_do_65_stan < 59 then '58 - 59 %'
+when osoby_18_do_65_stan < 60 then '59 - 60 %'
+when osoby_18_do_65_stan < 61 then '60 - 61 %'
+when osoby_18_do_65_stan < 62 then '61 - 62 %'
+else 'powy¿ej 62 %'
+end as procent_wiek_œredni_stan
+from dane_wiekowe
+group by party, votes, osoby_18_do_65_stan)m
+where party = 'Democrat')
+select rep.procent_wiek_œredni_stan, liczba_g³_republikanie, liczba_g³_demokraci,
+round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
+ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
+(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+from rep
+join dem
+on rep.procent_wiek_œredni_stan = dem.procent_wiek_œredni_stan
+
+
+
+select *
+from v_iv_wiek_18_65_stan;
+select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
+from v_iv_wiek_18_65_stan /*œredni predyktor - 0.154*/
+
+/* zestawienie stanów - do pokazania na mapie */
+with stany as
+(select state, party, procent_wiek_œredni_stan from
+(select  distinct state, party,
+case when osoby_18_do_65_stan < 57 then '0 - 57 %'
+when osoby_18_do_65_stan < 58 then '57 - 58 %'
+when osoby_18_do_65_stan < 59 then '58 - 59 %'
+when osoby_18_do_65_stan < 60 then '59 - 60 %'
+when osoby_18_do_65_stan < 61 then '60 - 61 %'
+when osoby_18_do_65_stan < 62 then '61 - 62 %'
+else 'powy¿ej 62 %'
+end as procent_wiek_œredni_stan
+from dane_wiekowe)x) 
+select state, party, stany.procent_wiek_œredni_stan,
+liczba_g³_republikanie, liczba_g³_demokraci
+from stany
+join v_iv_wiek_18_65_stan viss
+on stany.procent_wiek_œredni_stan = viss.procent_wiek_œredni_stan /*poprawne*/
 
 -----------------------------------------------------------------------------------------
 
