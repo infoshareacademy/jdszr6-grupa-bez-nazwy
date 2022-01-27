@@ -443,3 +443,18 @@ select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
 from v_iv_do_18 /*s³aby predyktor - 0.028 - zmienna nie brana pod uwagê w celu dalszej analizy*/
 
 
+-- hrabstwa vs grupa wiekowa 18 do 65 roku ¿ycia - g³osy --
+
+select state, county, party, osoby_18_do_65_hr, 
+sum(votes) as liczba_glosow
+from dane_wiekowe dww
+where party = 'Republican'
+group by state, county, party, osoby_18_do_65_hr
+
+select state, county, party, osoby_18_do_65_hr, 
+sum(votes) as liczba_glosow
+from dane_wiekowe dww
+where party = 'Democrat'
+group by state, county, party, osoby_18_do_65_hr
+
+
