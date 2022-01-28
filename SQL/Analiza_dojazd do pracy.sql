@@ -35,7 +35,7 @@ from dane_dojazd)x
 group by czas_dojazdu
 
 /*przygotowanie danych do obliczenia WOE i IV*/
-create view v_obliczenia_iv_dojazd as
+create view v_obliczenia_iv_dojazd_ as
 with rep as
 (select distinct party, czas_dojazdu, sum(votes) over (partition by party, czas_dojazdu) as liczba_g³_republikanie,
 sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
@@ -67,18 +67,18 @@ where party = 'Democrat')
 select distinct  dem.czas_dojazdu, liczba_g³_republikanie, liczba_g³_demokraci, 
 round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
 round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
-ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
-round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
-(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3) as dd_dr,
+(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as dd_dr_woe
 from rep 
 join dem 
 on dem.czas_dojazdu = rep.czas_dojazdu
 
 
 select *
-from v_obliczenia_iv_dojazd;
-select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
-from v_obliczenia_iv_dojazd /*nieu¿yteczny predyktor - 0.02. Czas dojazdu do pracy nie ma wp³ywu na preferencje wyborców*/
+from v_obliczenia_iv_dojazd_;
+select sum(dd_dr_woe) as information_value /*wyliczenie IV*/
+from v_obliczenia_iv_dojazd_ /*nieu¿yteczny predyktor - 0.074. Czas dojazdu do pracy nie ma wp³ywu na preferencje wyborców*/
 
 
 

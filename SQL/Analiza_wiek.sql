@@ -41,7 +41,7 @@ from dane_wiekowe)x
 group by procent_wiek_œredni
 
 /*przygotowanie danych do obliczenia WOE i IV*/
-create view v_iv_wieku_18_65 as
+create view v_iv_wieku_18_65_ as
 with rep as
 (select distinct party, procent_wiek_œredni, sum(votes) over (partition by party, procent_wiek_œredni) as liczba_g³_republikanie,
 sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
@@ -71,9 +71,9 @@ where party = 'Democrat')
 select rep.procent_wiek_œredni, liczba_g³_republikanie, liczba_g³_demokraci,
 round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
 round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
-ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
-round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
-(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3) as dd_dr,
+(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as dd_dr_woe
 from rep
 join dem
 on rep.procent_wiek_œredni = dem.procent_wiek_œredni
@@ -81,9 +81,9 @@ on rep.procent_wiek_œredni = dem.procent_wiek_œredni
 
 
 select *
-from v_iv_wieku_18_65;
-select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
-from v_iv_wieku_18_65 /*œredni predyktor - 0.151*/
+from v_iv_wieku_18_65_;
+select sum(dd_dr_woe) as information_value /*wyliczenie IV*/
+from v_iv_wieku_18_65_ /*œredni predyktor - 0.202*/
 
 /* zestawienie harbstw - do pokazania na mapie */
 with stany as
@@ -159,10 +159,12 @@ from dane_wiekowe
 group by party
 
 -- badanie korelacji pomiêdzy g³osami danej grupy wiekowej, a parti¹  - podzia³ na stany
-select party, state,
-corr(votes, osoby_18_do_65_hr) as korelacja_18_do_65
-from dane_wiekowe
-group by party, state
+select party, state, corr(suma_g³osów_stan, osoby_18_do_65_hr) as korelacja_weterani from
+(select distinct party, sum(votes) over (partition by party, county) as suma_g³osów_stan, state, county, osoby_18_do_65_hr
+from dane_wiekowe dw 
+group by state, state, party, osoby_18_do_65_hr, votes, county)x
+group by party,state
+order by corr(suma_g³osów_stan, osoby_18_do_65_hr)  desc
 
 
 --- wyliczenie WOE i IW na stany ---
@@ -185,7 +187,7 @@ from dane_wiekowe)x
 group by procent_wiek_œredni_stan
 
 /*przygotowanie danych do obliczenia WOE i IV*/
-create view v_iv_wiek_18_65_stan as
+create view v_iv_wiek_18_65_stan_ as
 with rep as
 (select distinct party, procent_wiek_œredni_stan, sum(votes) over (partition by party, procent_wiek_œredni_stan) as liczba_g³_republikanie,
 sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
@@ -219,9 +221,9 @@ where party = 'Democrat')
 select rep.procent_wiek_œredni_stan, liczba_g³_republikanie, liczba_g³_demokraci,
 round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
 round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
-ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
-round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
-(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3) as dd_dr,
+(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as dd_dr_woe
 from rep
 join dem
 on rep.procent_wiek_œredni_stan = dem.procent_wiek_œredni_stan
@@ -229,9 +231,9 @@ on rep.procent_wiek_œredni_stan = dem.procent_wiek_œredni_stan
 
 
 select *
-from v_iv_wiek_18_65_stan;
-select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
-from v_iv_wiek_18_65_stan /*œredni predyktor - 0.154*/
+from v_iv_wiek_18_65_stan_;
+select sum(dd_dr_woe) as information_value /*wyliczenie IV*/
+from v_iv_wiek_18_65_stan_ /*œredni predyktor - 0.197*/
 
 /* zestawienie stanów - do pokazania na mapie */
 with stany as
@@ -271,7 +273,7 @@ from dane_wiekowe)x
 group by procent_wiek_senior
 
 /*przygotowanie danych do obliczenia WOE i IV*/
-create view v_iv_min_65 as
+create view v_iv_min_65_ as
 with rep as
 (select distinct party, procent_wiek_senior, sum(votes) over (partition by party, procent_wiek_senior) as liczba_g³_republikanie,
 sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
@@ -303,9 +305,9 @@ where party = 'Democrat')
 select rep.procent_wiek_senior, liczba_g³_republikanie, liczba_g³_demokraci,
 round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
 round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
-ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
-round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
-(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3) as dd_dr,
+(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as dd_dr_woe
 from rep
 join dem
 on rep.procent_wiek_senior = dem.procent_wiek_senior
@@ -313,9 +315,9 @@ on rep.procent_wiek_senior = dem.procent_wiek_senior
 
 
 select *
-from v_iv_min_65;
-select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
-from v_iv_min_65 /*s³aby predyktor - 0.058 - zmienna nie brana pod uwagê w celu dalszej analizy*/
+from v_iv_min_65_;
+select sum(dd_dr_woe) as information_value /*wyliczenie IV*/
+from v_iv_min_65_ /*œredni predyktor - 0.111 - zmienna nie brana pod uwagê w celu dalszej analizy z racji niedu¿ego wp³ywu (wynik na granicy)*/
 
 /*-WOE i IV dla udzia³u grupy okreœlonej jako wiek do 5 lat  --*/
 
@@ -334,7 +336,7 @@ from dane_wiekowe)x
 group by procent_wiek_do_5
 
 /*przygotowanie danych do obliczenia WOE i IV*/
-create view v_iv_do_5 as
+create view v_iv_do_5_ as
 with rep as
 (select distinct party, procent_wiek_do_5, sum(votes) over (partition by party, procent_wiek_do_5) as liczba_g³_republikanie,
 sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
@@ -364,9 +366,9 @@ where party = 'Democrat')
 select rep.procent_wiek_do_5, liczba_g³_republikanie, liczba_g³_demokraci,
 round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
 round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
-ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
-round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
-(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3) as dd_dr,
+(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as dd_dr_woe
 from rep
 join dem
 on rep.procent_wiek_do_5 = dem.procent_wiek_do_5
@@ -374,9 +376,9 @@ on rep.procent_wiek_do_5 = dem.procent_wiek_do_5
 
 
 select *
-from v_iv_do_5;
-select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
-from v_iv_do_5 /*nieu¿yteczny predyktor - 0.015 - zmienna nie brana pod uwagê w celu dalszej analizy*/
+from v_iv_do_5_;
+select sum(dd_dr_woe) as information_value /*wyliczenie IV*/
+from v_iv_do_5_ /*nieu¿yteczny predyktor - 0.063 - zmienna nie brana pod uwagê w celu dalszej analizy*/
 
 /*-WOE i IV dla udzia³u grupy okreœlonej jako wiek do 18 lat  --*/
 
@@ -398,7 +400,7 @@ from dane_wiekowe)x
 group by procent_wiek_do_18
 
 /*przygotowanie danych do obliczenia WOE i IV*/
-create view v_iv_do_18 as
+create view v_iv_do_18_ as
 with rep as
 (select distinct party, procent_wiek_do_18, sum(votes) over (partition by party, procent_wiek_do_18) as liczba_g³_republikanie,
 sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
@@ -428,9 +430,9 @@ where party = 'Democrat')
 select rep.procent_wiek_do_18, liczba_g³_republikanie, liczba_g³_demokraci,
 round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
 round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
-ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
-round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
-(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3) as dd_dr,
+(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as dd_dr_woe
 from rep
 join dem
 on rep.procent_wiek_do_18 = dem.procent_wiek_do_18
@@ -438,9 +440,9 @@ on rep.procent_wiek_do_18 = dem.procent_wiek_do_18
 
 
 select *
-from v_iv_do_18;
-select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
-from v_iv_do_18 /*s³aby predyktor - 0.028 - zmienna nie brana pod uwagê w celu dalszej analizy*/
+from v_iv_do_18_;
+select sum(dd_dr_woe) as information_value /*wyliczenie IV*/
+from v_iv_do_18_ /*s³aby predyktor - 0.079 - zmienna nie brana pod uwagê w celu dalszej analizy*/
 
 
 -- hrabstwa vs grupa wiekowa 18 do 65 roku ¿ycia - g³osy --

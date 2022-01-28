@@ -38,7 +38,7 @@ from dane_p³eæ)x
 group by procent_kobiet
 
 /*przygotowanie danych do obliczenia WOE i IV*/
-create view v_iv_kobiety as
+create view v_iv_kobiety_ as
 with rep as
 (select distinct party, procent_kobiet, sum(votes) over (partition by party, procent_kobiet) as liczba_g³_republikanie,
 sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
@@ -72,9 +72,9 @@ where party = 'Democrat')
 select rep.procent_kobiet, liczba_g³_republikanie, liczba_g³_demokraci,
 round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
 round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
-ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
-round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
-(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3) as dd_dr,
+(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as dd_dr_woe
 from rep
 join dem
 on rep.procent_kobiet = dem.procent_kobiet
@@ -82,9 +82,9 @@ on rep.procent_kobiet = dem.procent_kobiet
 
 
 select *
-from v_iv_kobiety;
-select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
-from v_iv_kobiety /*s³aby predyktor - 0.050*/
+from v_iv_kobiety_;
+select sum(dd_dr_woe) as information_value /*wyliczenie IV*/
+from v_iv_kobiety_ /*s³aby predyktor - 0.098*/
 
 
 --WOE i IV mê¿czyŸni--
@@ -105,7 +105,7 @@ from dane_p³eæ)x
 group by procent_mê¿czyzn
 
 /*przygotowanie danych do obliczenia WOE i IV*/
-create view v_iv_mezczyzni as
+create view v_iv_mezczyzni_ as
 with rep as
 (select distinct party, procent_mê¿czyzn, sum(votes) over (partition by party, procent_mê¿czyzn) as liczba_g³_republikanie,
 sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
@@ -139,9 +139,9 @@ where party = 'Democrat')
 select rep.procent_mê¿czyzn, liczba_g³_republikanie, liczba_g³_demokraci,
 round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
 round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
-ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
-round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
-(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3) as dd_dr,
+(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as dd_dr_woe
 from rep
 join dem
 on rep.procent_mê¿czyzn = dem.procent_mê¿czyzn
@@ -149,9 +149,9 @@ on rep.procent_mê¿czyzn = dem.procent_mê¿czyzn
 
 
 select *
-from v_iv_mezczyzni;
-select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
-from v_iv_mezczyzni /*s³aby predyktor - 0.053*/
+from v_iv_mezczyzni_;
+select sum(dd_dr_woe) as information_value /*wyliczenie IV*/
+from v_iv_mezczyzni_ /*s³aby predyktor (jako, ¿e wynik u biet jest porównywarny) - 0.100*/
 
 
 /*zarówno wœród mê¿czyzn jak i kobiet wspó³cznik iV jest s³abym predyktorem - nie przeprowadzono dalszej analizy*/

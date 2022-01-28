@@ -35,7 +35,7 @@ from dane_weterani)x
 group by liczba_weteranów
 
 /*przygotowanie danych do obliczenia WOE i IV*/
-create view v_obliczenia_iv_weterani as
+create view v_obliczenia_iv_weterani_ as
 with rep as
 (select distinct party, liczba_weteranów, sum(votes) over (partition by party, liczba_weteranów) as liczba_g³_republikanie,
 sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
@@ -73,18 +73,18 @@ where party = 'Democrat')
 select distinct  dem.liczba_weteranów, liczba_g³_republikanie, liczba_g³_demokraci, 
 round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
 round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
-ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
-round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
-(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3) as dd_dr,
+(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as dd_dr_woe
 from rep 
 join dem 
 on dem.liczba_weteranów= rep.liczba_weteranów
 
 
 select *
-from v_obliczenia_iv_weterani;
-select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
-from v_obliczenia_iv_weterani /*œredni predyktor - 0.123*/
+from v_obliczenia_iv_weterani_;
+select sum(dd_dr_woe) as IV_weterani /*wyliczenie IV*/
+from v_obliczenia_iv_weterani_ /*œredni predyktor - 0.179*/
 
 
 -- analiza w podziale na podgrupy -- dane do u¿ycia
@@ -173,11 +173,15 @@ order by corr(votes, weterani_hr) desc
 
 -- badanie korelacji pomiêdzy g³osami weteranów, a parti¹ - przeliczenie na stany
 
-select party, state,
-corr(votes, weterani_hr) as korelacja_weterani
-from dane_weterani
-group by party, state
-order by corr(votes, weterani_hr) desc
+
+select party, state, corr(suma_g³osów_stan, weterani_hr) as korelacja_weterani from
+(select distinct party, sum(votes) over (partition by party, county) as suma_g³osów_stan, state, county, weterani_hr
+from dane_weterani dw 
+group by state, state, party, weterani_hr, votes, county)x
+group by party,state
+order by corr(suma_g³osów_stan, weterani_hr)  desc
+
+
 
 
 --- dodatkowo ---
@@ -205,7 +209,7 @@ from dane_weterani)x
 group by liczba_weteranów_stan
 
 /*przygotowanie danych do obliczenia WOE i IV*/
-create view v_obliczenia_iv_weterani_stan as
+create view v_obliczenia_iv_weterani_stan_ as
 with rep as
 (select distinct party, liczba_weteranów_stan, sum(votes) over (partition by party, liczba_weteranów_stan) as liczba_g³_republikanie,
 sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
@@ -243,17 +247,17 @@ where party = 'Democrat')
 select distinct  dem.liczba_weteranów_stan, liczba_g³_republikanie, liczba_g³_demokraci, 
 round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
 round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
-ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
-round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
-(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3) as dd_dr,
+(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as dd_dr_woe
 from rep 
 join dem 
 on dem.liczba_weteranów_stan= rep.liczba_weteranów_stan
 
 select *
-from v_obliczenia_iv_weterani_stan;
-select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
-from v_obliczenia_iv_weterani_stan /*s³aby predyktor - 0.020* = brak dalszej analizy*/
+from v_obliczenia_iv_weterani_stan_;
+select sum(dd_dr_woe) as information_value /*wyliczenie IV*/
+from v_obliczenia_iv_weterani_stan_ /*s³aby predyktor - 0.063* = brak dalszej analizy*/
 
 
 -- hrabstwa vs weterani - g³osy --

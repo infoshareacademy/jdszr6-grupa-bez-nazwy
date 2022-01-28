@@ -22,6 +22,29 @@ join county_facts cf
 on pr.fips_no = cf.fips
 order by PST045214 desc
 
+-- dana do wszystkich analiz --
+with dem as
+(select sum(votes) as suma_g³_Demokraci, party
+from primary_results_usa pru
+where party = 'Democrat'
+group by party),
+rep as
+(select sum(votes) as suma_g³_Republikan, party
+from primary_results_usa pru
+where party = 'Republican'
+group by party),
+suma as
+(select sum(votes) as suma
+from primary_results_usa pru)
+select 
+round(suma_g³_Demokraci*100 / suma, 2) as prct_Demokraci,
+round(suma_g³_Republikan*100 / suma, 2) as prct_Republikan
+from rep
+cross join suma
+cross join dem
+
+
+
 --WOE i IV dla populacji w 2010 roku --
 
 /* sprawdzenie ile wyników bêdzie w danej grupie*/
@@ -40,7 +63,7 @@ from dane_populacja)x
 group by wielkoœæ_hrabstwa
 
 /*przygotowanie danych do obliczenia WOE i IV*/
-create view v_iv_populacj as
+create view v_iv_populacj_ as
 with rep as
 (select distinct party, wielkoœæ_hrabstwa, sum(votes) over (partition by party, wielkoœæ_hrabstwa) as liczba_g³_republikanie,
 sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
@@ -74,9 +97,9 @@ where party = 'Democrat')
 select rep.wielkoœæ_hrabstwa, liczba_g³_republikanie, liczba_g³_demokraci,
 round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
 round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
-ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
-round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
-(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3) as dd_dr,
+(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as dd_dr_woe
 from rep
 join dem
 on rep.wielkoœæ_hrabstwa = dem.wielkoœæ_hrabstwa
@@ -84,10 +107,12 @@ on rep.wielkoœæ_hrabstwa = dem.wielkoœæ_hrabstwa
 
 
 select *
-from v_iv_populacj 
+from v_iv_populacj_ 
 order by wielkoœæ_hrabstwa;
-select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
-from v_iv_populacj /*œredni predyktor - 0.152*/
+select sum(dd_dr_woe) as information_value /*wyliczenie IV*/
+from v_iv_populacj_ /*œredni predyktor - 0.206*/
+
+
 
 -- analiza w podziale na podgrupy -- dane do u¿ycia
 
@@ -131,7 +156,7 @@ group by zagêszczenie_hrabstwa
 
 
 /*przygotowanie danych do obliczenia WOE i IV*/
-create view v_iv_zageszczenie as
+create view v_iv_zageszczenie_ as
 with rep as
 (select distinct party, zagêszczenie_hrabstwa, sum(votes) over (partition by party, zagêszczenie_hrabstwa) as liczba_g³_republikanie,
 sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
@@ -165,19 +190,19 @@ where party = 'Democrat')
 select rep.zagêszczenie_hrabstwa, liczba_g³_republikanie, liczba_g³_demokraci,
 round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
 round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
-ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
-round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
-(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3) as dd_dr,
+(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as dd_dr_woe
 from rep
 join dem
 on rep.zagêszczenie_hrabstwa = dem.zagêszczenie_hrabstwa
 
 
 select *
-from v_iv_zageszczenie
+from v_iv_zageszczenie_
 order by zagêszczenie_hrabstwa;
-select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
-from v_iv_zageszczenie /*œredni predyktor - 0.191*/
+select sum(dd_dr_woe) as information_value /*wyliczenie IV*/
+from v_iv_zageszczenie_ /*œredni predyktor - 0.246*/
 
 /* wykaz hrabstw stosunek procentowy g³osów na dan¹ patiê (w podziale na grupy iloœciowe)*/
 
@@ -294,12 +319,14 @@ group by party
 order by corr(votes, pop_2010_real_hr) desc
 
 -- badanie korelacji pomiêdzy g³osami populacji, a parti¹ - przeliczneie na stany
-select party, state,
-corr(votes, pop_2010_real_hr) as korelacja_populacja_2010,
-corr(votes, zageszczenie_2010_hr) as korelacja_zageszczenie_2010
+select party, state, corr(suma_g³osów_stan, pop_2010_real_hr) as korelacja_liczebnoœæ,
+corr(suma_g³osów_stan, zageszczenie_2010_hr) as korelacja_zageszczenie
+from
+(select distinct party, sum(votes) over (partition by party, county) as suma_g³osów_stan, state, county, pop_2010_real_hr, zageszczenie_2010_hr
 from dane_populacja
-where state ='Nevada'
-group by party, state
+group by state, state, party, pop_2010_real_hr, votes, county, zageszczenie_2010_hr)x
+group by party,state
+order by corr(suma_g³osów_stan, pop_2010_real_hr)  desc
 
 
 --- dodatkowo ---
@@ -323,7 +350,7 @@ from dane_populacja)x
 group by wielkoœæ_stanu
 
 /*przygotowanie danych do obliczenia WOE i IV*/
-create view v_iv_populacja_stan as
+create view v_iv_populacja_stan_ as
 with rep as
 (select distinct party, wielkoœæ_stanu, sum(votes) over (partition by party, wielkoœæ_stanu) as liczba_g³_republikanie,
 sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
@@ -359,9 +386,9 @@ where party = 'Democrat')
 select rep.wielkoœæ_stanu, liczba_g³_republikanie, liczba_g³_demokraci,
 round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
 round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
-ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
-round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
-(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3) as dd_dr,
+(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as dd_dr_woe
 from rep
 join dem
 on rep.wielkoœæ_stanu = dem.wielkoœæ_stanu
@@ -369,9 +396,9 @@ on rep.wielkoœæ_stanu = dem.wielkoœæ_stanu
 
 
 select *
-from v_iv_populacja_stan ;
-select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
-from v_iv_populacja_stan /*s³aby predyktor - 0.049 - brak dalszej analizy*/
+from v_iv_populacja_stan_ ;
+select sum(dd_dr_woe) as information_value /*wyliczenie IV*/
+from v_iv_populacja_stan_ /*s³aby predyktor - 0.093 - brak dalszej analizy*/
 
 
 -- zagêszczenie -- stany --
@@ -395,7 +422,7 @@ from dane_populacja)x
 group by zagêszczenie_stanu
 
 /*przygotowanie danych do obliczenia WOE i IV*/
-create view v_iv_zageszczenie_stan as
+create view v_iv_zageszczenie_stan_ as
 with rep as
 (select distinct party, zagêszczenie_stanu, sum(votes) over (partition by party, zagêszczenie_stanu) as liczba_g³_republikanie,
 sum (votes) over (partition by party) as suma_ca³kowita_partia_rep from
@@ -431,18 +458,18 @@ where party = 'Democrat')
 select rep.zagêszczenie_stanu, liczba_g³_republikanie, liczba_g³_demokraci,
 round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) as distribution_rep_dr,
 round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as distribution_dem_dd,
-ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as WOE,
-round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3) as dr_dd,
-(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_republikanie/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_demokraci/suma_ca³kowita_partia_dem, 3)) as dr_dd_woe
+ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as WOE,
+round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3) as dd_dr,
+(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3) - round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) * ln(round(liczba_g³_demokraci/suma_ca³kowita_partia_rep, 3)/round(liczba_g³_republikanie/suma_ca³kowita_partia_dem, 3)) as dd_dr_woe
 from rep
 join dem
 on rep.zagêszczenie_stanu = dem.zagêszczenie_stanu
 
 
 select *
-from v_iv_zageszczenie_stan;
-select sum(dr_dd_woe) as information_value /*wyliczenie IV*/
-from v_iv_zageszczenie_stan /*œredni predyktor - 0.163*/
+from v_iv_zageszczenie_stan_;
+select sum(dd_dr_woe) as information_value /*wyliczenie IV*/
+from v_iv_zageszczenie_stan_ /*œredni predyktor - 0.204*/
 
 
 -- wykaz stanów -- 
