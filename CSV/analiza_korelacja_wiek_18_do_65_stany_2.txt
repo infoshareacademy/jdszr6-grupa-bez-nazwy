@@ -1,0 +1,79 @@
+"party","state","korelacja_weterani"
+Democrat,Delaware,0.7178655330999362
+Democrat,Hawaii,0.6315533511143426
+Republican,Hawaii,0.6046681729945907
+Democrat,New Jersey,0.4271765461788337
+Democrat,Arizona,0.3147996476759426
+Democrat,Wisconsin,0.3109060523129822
+Democrat,California,0.30719805059232724
+Democrat,Tennessee,0.2964522827616283
+Democrat,Oregon,0.2948930659390479
+Republican,Tennessee,0.2939200729122885
+Republican,Nebraska,0.2928718533713393
+Republican,Arizona,0.2733203814869697
+Democrat,Nebraska,0.2712199914922774
+Democrat,New Mexico,0.26458130805977814
+Democrat,Wyoming,0.24442875366516265
+Republican,Wisconsin,0.23119452353586348
+Democrat,Maryland,0.22775512561770533
+Democrat,Michigan,0.21894640638196688
+Republican,Michigan,0.21368932635619686
+Republican,Oregon,0.21246342526982884
+Democrat,Florida,0.20698965783810105
+Republican,Ohio,0.1960385186261244
+Democrat,North Carolina,0.19002059047929584
+Republican,South Dakota,0.17281973399982084
+Republican,Kentucky,0.16959022498776913
+Republican,California,0.16493731889715368
+Republican,Indiana,0.15613394970145203
+Republican,Florida,0.15426508270223094
+Republican,Texas,0.149221062438251
+Democrat,Ohio,0.1402163934296089
+Democrat,South Dakota,0.13867515153098234
+Democrat,Indiana,0.13062846452468216
+Democrat,Texas,0.11909666200204094
+Republican,South Carolina,0.11153423083971503
+Democrat,Missouri,0.11045120633464815
+Democrat,Kentucky,0.10982022764534424
+Democrat,Colorado,0.10756429461905777
+Democrat,Pennsylvania,0.10516610111557949
+Republican,Alabama,0.10040881417600468
+Republican,Arkansas,0.09789219995631791
+Republican,Missouri,0.09201733975822451
+Democrat,Illinois,0.09101547717351172
+Republican,North Carolina,0.09067960190454036
+Democrat,Montana,0.07933463954806626
+Republican,New Mexico,0.07850985700380156
+Democrat,Alabama,0.07672794332783407
+Democrat,South Carolina,0.07008558526367636
+Republican,Illinois,0.06830516017807674
+Democrat,New York,0.058510150004789915
+Republican,Montana,0.05107322302955025
+Democrat,Virginia,0.047509750079847334
+Republican,Iowa,0.037174903775690105
+Republican,Maryland,0.026151754079936775
+Democrat,Georgia,0.024385846169290636
+Democrat,Iowa,0.012496309221658222
+Democrat,Arkansas,0.007466583913575204
+Republican,Pennsylvania,0.005976209750295721
+Republican,Virginia,0.0050408371557995645
+Republican,Georgia,-0.00131373010384501
+Republican,Nevada,-0.015035551797974034
+Democrat,Louisiana,-0.015718974463372514
+Republican,Oklahoma,-0.030670838465709546
+Republican,Delaware,-0.03790428750904459
+Republican,Louisiana,-0.03838264106976016
+Republican,Utah,-0.043196658491571116
+Democrat,West Virginia,-0.0447403421101969
+Democrat,Oklahoma,-0.05465086667298155
+Republican,Mississippi,-0.056685496700111894
+Republican,New Jersey,-0.05761589946903468
+Democrat,Mississippi,-0.06591587804544635
+Republican,West Virginia,-0.09301839202503223
+Democrat,Nevada,-0.09573889806514571
+Republican,Washington,-0.10206768144627006
+Republican,Idaho,-0.11100903202069737
+Democrat,Utah,-0.1260435826780409
+Republican,New York,-0.16003596420126842
+Democrat,Idaho,-0.17997143504821855
+Democrat,Washington,-0.2132476444228032
