@@ -1,0 +1,3 @@
+"party","korelacja_18_do_65"
+Republican,0.17514180277495792
+Democrat,0.2182103920097463
