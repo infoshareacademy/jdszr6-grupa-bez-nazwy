@@ -1,3 +1,0 @@
-"party","śr_prct_wykształcenie_wyższe","liczba_wygranych"
-Democrat,23.47,14
-Republican,19.04,26

@@ -1,3 +1,0 @@
-"party","śr_liczba_weteranów_na_stan","liczba_wszystkich_weteranów_w_stanie","liczba_wygranych"
-Democrat,2285664.14,31999298.00,14
-Republican,3155647.04,82046823.00,26
