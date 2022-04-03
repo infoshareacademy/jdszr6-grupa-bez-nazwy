@@ -1,0 +1,3 @@
+"party","korelacja_populacja_2010","korelacja_zageszczenie_2010"
+Democrat,0.8965323908794801,0.39917852184744346
+Republican,0.6548599883171584,0.14690835023779822

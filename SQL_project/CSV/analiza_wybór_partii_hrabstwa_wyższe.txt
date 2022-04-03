@@ -1,0 +1,4 @@
+"party","średni_prct_wykształcenie_wyższe","liczba_wygranych"
+Democrat,21.93,708
+Republican,18.44,2091
+

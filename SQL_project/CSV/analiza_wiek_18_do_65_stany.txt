@@ -1,0 +1,79 @@
+"state","party","procent_wiek_średni_stan","liczba_gł_republikanie","liczba_gł_demokraci"
+Utah,Democrat,"0 - 57 %",413699,159226
+Nebraska,Democrat,"0 - 57 %",413699,159226
+Nebraska,Republican,"0 - 57 %",413699,159226
+South Dakota,Republican,"0 - 57 %",413699,159226
+Utah,Republican,"0 - 57 %",413699,159226
+South Dakota,Democrat,"0 - 57 %",413699,159226
+Arizona,Democrat,"57 - 58 %",648963,422339
+Idaho,Republican,"57 - 58 %",648963,422339
+Arizona,Republican,"57 - 58 %",648963,422339
+Idaho,Democrat,"57 - 58 %",648963,422339
+Arkansas,Democrat,"58 - 59 %",5113931,3555892
+Oklahoma,Democrat,"58 - 59 %",5113931,3555892
+Missouri,Republican,"58 - 59 %",5113931,3555892
+Arkansas,Republican,"58 - 59 %",5113931,3555892
+New Mexico,Democrat,"58 - 59 %",5113931,3555892
+Oklahoma,Republican,"58 - 59 %",5113931,3555892
+Iowa,Democrat,"58 - 59 %",5113931,3555892
+New Mexico,Republican,"58 - 59 %",5113931,3555892
+Texas,Democrat,"58 - 59 %",5113931,3555892
+Texas,Republican,"58 - 59 %",5113931,3555892
+Montana,Republican,"58 - 59 %",5113931,3555892
+Montana,Democrat,"58 - 59 %",5113931,3555892
+Iowa,Republican,"58 - 59 %",5113931,3555892
+Oregon,Republican,"58 - 59 %",5113931,3555892
+Oregon,Democrat,"58 - 59 %",5113931,3555892
+Missouri,Democrat,"58 - 59 %",5113931,3555892
+Florida,Republican,"59 - 60 %",5095629,3855626
+Washington,Democrat,"59 - 60 %",5095629,3855626
+Florida,Democrat,"59 - 60 %",5095629,3855626
+Wisconsin,Democrat,"59 - 60 %",5095629,3855626
+Michigan,Democrat,"59 - 60 %",5095629,3855626
+Washington,Republican,"59 - 60 %",5095629,3855626
+Wisconsin,Republican,"59 - 60 %",5095629,3855626
+Michigan,Republican,"59 - 60 %",5095629,3855626
+South Carolina,Republican,"60 - 61 %",8251699,5347621
+Illinois,Democrat,"60 - 61 %",8251699,5347621
+North Carolina,Democrat,"60 - 61 %",8251699,5347621
+Mississippi,Democrat,"60 - 61 %",8251699,5347621
+Illinois,Republican,"60 - 61 %",8251699,5347621
+Nevada,Republican,"60 - 61 %",8251699,5347621
+South Carolina,Democrat,"60 - 61 %",8251699,5347621
+Ohio,Democrat,"60 - 61 %",8251699,5347621
+Indiana,Republican,"60 - 61 %",8251699,5347621
+West Virginia,Democrat,"60 - 61 %",8251699,5347621
+Mississippi,Republican,"60 - 61 %",8251699,5347621
+Alabama,Democrat,"60 - 61 %",8251699,5347621
+Alabama,Republican,"60 - 61 %",8251699,5347621
+Wyoming,Democrat,"60 - 61 %",8251699,5347621
+Tennessee,Republican,"60 - 61 %",8251699,5347621
+Ohio,Republican,"60 - 61 %",8251699,5347621
+Tennessee,Democrat,"60 - 61 %",8251699,5347621
+Delaware,Democrat,"60 - 61 %",8251699,5347621
+West Virginia,Republican,"60 - 61 %",8251699,5347621
+Delaware,Republican,"60 - 61 %",8251699,5347621
+North Carolina,Republican,"60 - 61 %",8251699,5347621
+Indiana,Democrat,"60 - 61 %",8251699,5347621
+Nevada,Democrat,"60 - 61 %",8251699,5347621
+Colorado,Democrat,"61 - 62 %",5727103,7461015
+Virginia,Republican,"61 - 62 %",5727103,7461015
+Hawaii,Democrat,"61 - 62 %",5727103,7461015
+California,Democrat,"61 - 62 %",5727103,7461015
+Virginia,Democrat,"61 - 62 %",5727103,7461015
+Kentucky,Republican,"61 - 62 %",5727103,7461015
+Georgia,Democrat,"61 - 62 %",5727103,7461015
+Hawaii,Republican,"61 - 62 %",5727103,7461015
+California,Republican,"61 - 62 %",5727103,7461015
+Pennsylvania,Republican,"61 - 62 %",5727103,7461015
+Georgia,Republican,"61 - 62 %",5727103,7461015
+Louisiana,Republican,"61 - 62 %",5727103,7461015
+Pennsylvania,Democrat,"61 - 62 %",5727103,7461015
+Kentucky,Democrat,"61 - 62 %",5727103,7461015
+Louisiana,Democrat,"61 - 62 %",5727103,7461015
+New York,Democrat,powyżej 62 %,1722792,3509570
+New Jersey,Republican,powyżej 62 %,1722792,3509570
+Maryland,Republican,powyżej 62 %,1722792,3509570
+Maryland,Democrat,powyżej 62 %,1722792,3509570
+New Jersey,Democrat,powyżej 62 %,1722792,3509570
+New York,Republican,powyżej 62 %,1722792,3509570
