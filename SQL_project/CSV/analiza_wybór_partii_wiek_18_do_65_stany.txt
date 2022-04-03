@@ -1,3 +1,0 @@
-"party","śr_procent_18_do_65","liczba_wygranych"
-Democrat,61.12,14
-Republican,59.33,26

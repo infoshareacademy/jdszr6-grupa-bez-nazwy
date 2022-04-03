@@ -1,3 +1,0 @@
-"party","śr_populac_2010_real","il_ludzi_real_2010","śr_zageszczenie_2010","liczba_wygranych"
-Democrat,38234904.57,535288664.00,634.75,14
-Republican,41994461.77,1091856006.00,147.34,26
