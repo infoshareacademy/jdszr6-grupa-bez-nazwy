@@ -248,11 +248,13 @@ categorie_test = dane['Category'].unique()
 seb_categories = {c:  dane[dane['Category'] == c ]for c in categorie_test}
 
 colors = ['r', 'g', 'b', 'y', 'm' ]
-n_categories = 0
-index = 0
-n_plot = 1
+
 
 def chart_density_app (): #funkcja
+    
+    n_categories = 0
+    index = 0
+    n_plot = 1
 
     for col in ['Rating', 'Installs', 'Reviews']:
         for c in seb_categories.keys():
