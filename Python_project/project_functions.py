@@ -38,9 +38,9 @@ avg_rat = round(mydata['Rating'].mean(),2)
 
 def means(): #funkcja
      
-    print(f'Average no of reviews is: {avg_rev}')
-    print(f'Average no of reviews is: {avg_inst}')
-    print(f'Average no of reviews is: {avg_rat}')
+    print(f'Średnia liczba recenzji aplikacji wynosi: {avg_rev}')
+    print(f'Średnia liczba pobrań aplikacji wynosi: {avg_inst}')
+    print(f'Średnia ocena aplikacji wynosi: {avg_rat}')
 
 corr =mydata.corr(method='pearson')
 import seaborn as sns
@@ -104,7 +104,7 @@ stos_mean_i = round(free_type['Installs'].mean()/paid_type['Installs'].mean(), 2
 
 def mean_ratio(): #funkcja
     
-    print(f'Mean ratio is: {stos_mean_i}')
+    print(f'Ratio - ilość pobrań app darmowej / płatnej: {stos_mean_i}')
 
 
 
@@ -394,3 +394,22 @@ def chart_reviews_avg_comp (): #funkcja
     plt.title("Podział na Reviews", y=1.02)
     plt.grid(b=True, axis='y')
     plt.show()
+
+
+
+
+
+def chart_size_quantile(): #funckja
+
+   
+    plt.figure(figsize=(20,10))
+    quantiles = np.arange(0.3, 1, 0.1).round(1)
+    quantiles.round()
+    for q in quantiles:
+    
+        t = size[size["Installs"] > size["Installs"].quantile(q)]
+        t = t[t["Reviews"] > t["Reviews"].quantile(q)]
+        t["Size mb"].plot.density(xlim=(0,t["Size mb"].max()), ylim=(0,.03))
+        plt.xlabel("Size [Mb]")
+        plt.legend(quantiles)
+    pass
