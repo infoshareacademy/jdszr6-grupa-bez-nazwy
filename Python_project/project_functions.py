@@ -10,10 +10,12 @@ pd.set_option('display.width', 1000)
 pd.set_option('display.colheader_justify', 'center')
 pd.set_option('display.precision', 3)
 
-df1 = pd.read_csv('C:/Users/andrz/Desktop/ISA/Projekt/jdszr6-grupa-bez-nazwy/Python_project/googleplaystore.csv') 
+cwd = os.getcwd() #current working directory
+
+df1 = pd.read_csv(cwd+'\\googleplaystore.csv') 
 data = df1[['App', 'Category', 'Rating', 'Reviews', 'Size', 'Installs', 'Type', 'Content Rating']].groupby(['App']).max().dropna().reset_index()
-data["Installs"] = pd.to_numeric(data["Installs"].str.replace(",","").str.replace("+",""))
-data["Reviews"] = pd.to_numeric(data["Reviews"])
+data.iloc["Installs"] = pd.to_numeric(data["Installs"].str.replace(",","").str.replace("+",""))
+data.iloc["Reviews"] = pd.to_numeric(data["Reviews"])
 mydata = data[['App',"Type", 'Size','Category', 'Content Rating', "Rating", "Reviews", "Installs"]]
 
 size = mydata[:]
@@ -180,8 +182,8 @@ pop.sort_values(["Installs","Reviews"], ascending=False)
 
 rev_scores = pop.sort_values(["Installs","Reviews"], ascending=False)
 rev_scores = rev_scores.groupby(["Category"]).count().reset_index()
-print("ilość aplikacji", rev_scores["App"].sum())
-print("ilość kategorii", rev_scores["Category"].count())
+#print("ilość aplikacji", rev_scores["App"].sum())
+#print("ilość kategorii", rev_scores["Category"].count())
 
 rev_scores["Category Score"] = round(rev_scores["App"]/min(rev_scores["App"]))
 rev_scores.iloc[:,[0,1,-1]].sort_values(["App"], ascending=False)
@@ -228,19 +230,7 @@ def scoreboard (): #funkcja
     display(file.iloc[:100])
 
 
-
-dane = df1[['App', 'Category', 'Rating', 'Reviews', 'Size', 'Installs', 'Type', 'Content Rating']].groupby(['App', 'Category', 'Rating', 'Reviews', 'Size', 'Installs', 'Type', 'Content Rating']).mean().reset_index()
-dane =dane.dropna()
-dane.duplicated().sum()
-dane.head()
-
-dane = dane[['App', 'Category', 'Rating', 'Installs', 'Reviews', 'Content Rating', 'Type']]
-dane['Installs'] = dane['Installs'].str.rstrip('+')
-dane['Installs'] = dane['Installs'].replace(',', '', regex = True)
-dane['Installs'] = pd.to_numeric(dane['Installs'])
-dane['Reviews'] = pd.to_numeric(dane['Reviews'])
-
-dane.head()
+dane = data
 dane[dane['Content Rating'] == 'Unrated']
 
 categorie_test = dane['Category'].unique()
@@ -273,7 +263,7 @@ def chart_density_app (): #funkcja
 
 
 colors = ['r', 'g', 'b', 'y', 'm' ]
-print(dane['Content Rating'].unique())
+#print(dane['Content Rating'].unique())
 
 def chart_density_rating_app (): #funkcja
 
@@ -281,7 +271,7 @@ def chart_density_rating_app (): #funkcja
         for col in ['Rating', 'Installs', 'Reviews']:
             temp = dane[dane['Content Rating'] == content_rating]
             try:
-                temp[col].plot.density(color='r')
+                temp.iloc[col].plot.density(color='r')
             except ValueError:
                 print(f'There is no data "{content_rating}" for column "{col}"')
             plt.title(f'Density plot of content rating "{content_rating}" for column "{col}"')
@@ -295,7 +285,7 @@ def installs_category_no ():  #funkcja
 
     for cat in dane["Category"].unique():
         temp = dane[dane['Category'] == cat]
-        temp['Installs'].value_counts().plot(kind='bar', color=('red','green', 'blue', 'yellow', 'black'))
+        temp.iloc['Installs'].value_counts().plot(kind='bar', color=('red','green', 'blue', 'yellow', 'black'))
         plt.title(f'Installs for category "{cat}"')
         plt.show()
 
@@ -413,3 +403,63 @@ def chart_size_quantile(): #funckja
         plt.xlabel("Size [Mb]")
         plt.legend(quantiles)
     pass
+
+########### APP APP ###############
+
+### WIDGETS ###
+
+import ipywidgets as widgets
+from IPython.display import display
+
+categories = data["Category"].sort_values().unique()
+category_scoreboard = pd.merge(data["Category"].drop_duplicates(), rev_scores, on="Category", how="left").fillna(0)
+
+contents = data["Content Rating"].unique()
+content_scoreboard = pd.merge(data["Content Rating"].drop_duplicates(), content_scores, on="Content Rating", how="left").fillna(0) 
+
+size = widgets.IntSlider(max = 110)
+size_widget = widgets.VBox([widgets.Label("Size [Mb]"), size])
+category = widgets.Dropdown(options=categories)
+category_widget = widgets.VBox([widgets.Label("Category"), category])
+freepaid_button = widgets.ToggleButtons(options=["Free", "Paid"])
+content = widgets.RadioButtons(options=contents, desciption="Content rating:")
+content_widget = widgets.VBox([widgets.Label("Content Rating"), content])
+
+### SCOREBOARDS and SCORE COUNTING ###
+
+category_score = float(category_scoreboard[category_scoreboard["Category"] == category.value]["Category Score"])
+content_score = float( content_scoreboard[content_scoreboard["Content Rating"] == content.value]["Score content"] )
+
+if freepaid_button.value == "Free": 
+    subscription_score = round(stos_mean_i)
+else:
+    subscription_score = 1
+
+if size.value < 100:
+    size_input = size.value
+else:
+    size_input = 100
+size_score = float(size_scores[size_scores["Size category"] == (size_input//10)]["Score size"])
+
+cat_max = category_scoreboard["Category Score"].max()
+cont_max = content_scoreboard["Score content"].max()
+size_max = size_scores["Score size"].max()
+
+max_score = round ((cat_max + cont_max + size_max) * round(stos_mean_i))
+
+score = round ((category_score + size_score + content_score) * subscription_score,2)
+score_prc = round(score*100/max_score,2)
+
+if subscription_score == 1 :
+    paid_app_message = f"free apps got x{stos_mean_i} score multiplier"
+else:
+    paid_app_message = "max"
+
+def print_app_stats():    
+    print(f"Size score:           {size_score} / {size_max}")
+    print(f"Category score:       {category_score} / {cat_max}")
+    print(f"Free/paid multiplier: x{subscription_score} - {paid_app_message}")
+    print(f"Content score:        {content_score} / {cont_max}")
+    print(f"---------------------------------------")
+    print(f"TOTAL SCORE:          {score} / {max_score}")
+    print(f"TOTAL SCORE %         {score_prc}% / 100.00%")
