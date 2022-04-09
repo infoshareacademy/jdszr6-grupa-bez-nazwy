@@ -14,8 +14,8 @@ cwd = os.getcwd() #current working directory
 
 df1 = pd.read_csv(cwd+'\\googleplaystore.csv') 
 data = df1[['App', 'Category', 'Rating', 'Reviews', 'Size', 'Installs', 'Type', 'Content Rating']].groupby(['App']).max().dropna().reset_index()
-data.iloc["Installs"] = pd.to_numeric(data["Installs"].str.replace(",","").str.replace("+",""))
-data.iloc["Reviews"] = pd.to_numeric(data["Reviews"])
+data["Installs"] = pd.to_numeric(data["Installs"].str.replace(",","").str.replace("+",""))
+data["Reviews"] = pd.to_numeric(data["Reviews"])
 mydata = data[['App',"Type", 'Size','Category', 'Content Rating', "Rating", "Reviews", "Installs"]]
 
 size = mydata[:]
@@ -259,7 +259,14 @@ def chart_density_app (): #funkcja
                 n_categories = 0
                 n_plot += 1
 
-
+dane = df1[['App', 'Category', 'Rating', 'Reviews', 'Size', 'Installs', 'Type', 'Content Rating']].groupby(['App', 'Category', 'Rating', 'Reviews', 'Size', 'Installs', 'Type', 'Content Rating']).mean().reset_index()
+dane =dane.dropna()
+dane.duplicated().sum()
+dane = dane[['App', 'Category', 'Rating', 'Installs', 'Reviews', 'Content Rating', 'Type']]
+dane['Installs'] = dane['Installs'].str.rstrip('+')
+dane['Installs'] = dane['Installs'].replace(',', '', regex = True)
+dane['Installs'] = pd.to_numeric(dane['Installs'])
+dane['Reviews'] = pd.to_numeric(dane['Reviews'])
 
 
 colors = ['r', 'g', 'b', 'y', 'm' ]
@@ -271,7 +278,7 @@ def chart_density_rating_app (): #funkcja
         for col in ['Rating', 'Installs', 'Reviews']:
             temp = dane[dane['Content Rating'] == content_rating]
             try:
-                temp.iloc[col].plot.density(color='r')
+                temp[col].plot.density(color='r')
             except ValueError:
                 print(f'There is no data "{content_rating}" for column "{col}"')
             plt.title(f'Density plot of content rating "{content_rating}" for column "{col}"')
@@ -280,14 +287,15 @@ def chart_density_rating_app (): #funkcja
 
 
 
-
 def installs_category_no ():  #funkcja
 
     for cat in dane["Category"].unique():
         temp = dane[dane['Category'] == cat]
-        temp.iloc['Installs'].value_counts().plot(kind='bar', color=('red','green', 'blue', 'yellow', 'black'))
+        temp['Installs'].value_counts().plot(kind='bar', color=('red','green', 'blue', 'yellow', 'black'))
         plt.title(f'Installs for category "{cat}"')
         plt.show()
+
+
 
 data2 = df1[['App', 'Category', 'Rating', 'Reviews', 'Size', 'Installs', 'Type', 'Content Rating']].groupby(['App']).max().dropna().reset_index()
 data2["Installs"] = pd.to_numeric(data2["Installs"].str.replace(",","").str.replace("+",""))
@@ -411,19 +419,20 @@ def chart_size_quantile(): #funckja
 import ipywidgets as widgets
 from IPython.display import display
 
-categories = data["Category"].sort_values().unique()
-category_scoreboard = pd.merge(data["Category"].drop_duplicates(), rev_scores, on="Category", how="left").fillna(0)
+def widget():
+    categories = data["Category"].sort_values().unique()
+    category_scoreboard = pd.merge(data["Category"].drop_duplicates(), rev_scores, on="Category", how="left").fillna(0)
 
-contents = data["Content Rating"].unique()
-content_scoreboard = pd.merge(data["Content Rating"].drop_duplicates(), content_scores, on="Content Rating", how="left").fillna(0) 
+    contents = data["Content Rating"].unique()
+    content_scoreboard = pd.merge(data["Content Rating"].drop_duplicates(), content_scores, on="Content Rating", how="left").fillna(0) 
 
-size = widgets.IntSlider(max = 110)
-size_widget = widgets.VBox([widgets.Label("Size [Mb]"), size])
-category = widgets.Dropdown(options=categories)
-category_widget = widgets.VBox([widgets.Label("Category"), category])
-freepaid_button = widgets.ToggleButtons(options=["Free", "Paid"])
-content = widgets.RadioButtons(options=contents, desciption="Content rating:")
-content_widget = widgets.VBox([widgets.Label("Content Rating"), content])
+    size = widgets.IntSlider(max = 110)
+    size_widget = widgets.VBox([widgets.Label("Size [Mb]"), size])
+    category = widgets.Dropdown(options=categories)
+    category_widget = widgets.VBox([widgets.Label("Category"), category])
+    freepaid_button = widgets.ToggleButtons(options=["Free", "Paid"])
+    content = widgets.RadioButtons(options=contents, desciption="Content rating:")
+    content_widget = widgets.VBox([widgets.Label("Content Rating"), content])
 
 ### SCOREBOARDS and SCORE COUNTING ###
 
