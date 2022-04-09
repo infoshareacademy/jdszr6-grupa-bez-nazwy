@@ -223,11 +223,15 @@ frame = {'Total':total}
 total_frame = pd.DataFrame(frame)
 
 file['Total'] = total_frame['Total']
-file = file[['Category', 'Type', 'Size mb', 'Content Rating', 'Size category', 'Category Score', 'Score content', 'Score size', 'Total']]
+file = file[['Category', 'Type', 'Size mb', 'Content Rating', 'Category Score', 'Score content', 'Score size', 'Total']]
+
+cm = sns.light_palette('green', as_cmap=True)
+s = file.style.background_gradient(cmap=cm, low=0, high=1, axis=0)
+s
 
 def scoreboard (): #funkcja
 
-    display(file.iloc[:100])
+    display(s)
 
 
 dane = data
@@ -419,20 +423,19 @@ def chart_size_quantile(): #funckja
 import ipywidgets as widgets
 from IPython.display import display
 
-def widget():
-    categories = data["Category"].sort_values().unique()
-    category_scoreboard = pd.merge(data["Category"].drop_duplicates(), rev_scores, on="Category", how="left").fillna(0)
+categories = data["Category"].sort_values().unique()
+category_scoreboard = pd.merge(data["Category"].drop_duplicates(), rev_scores, on="Category", how="left").fillna(0)
 
-    contents = data["Content Rating"].unique()
-    content_scoreboard = pd.merge(data["Content Rating"].drop_duplicates(), content_scores, on="Content Rating", how="left").fillna(0) 
+contents = data["Content Rating"].unique()
+content_scoreboard = pd.merge(data["Content Rating"].drop_duplicates(), content_scores, on="Content Rating", how="left").fillna(0) 
 
-    size = widgets.IntSlider(max = 110)
-    size_widget = widgets.VBox([widgets.Label("Size [Mb]"), size])
-    category = widgets.Dropdown(options=categories)
-    category_widget = widgets.VBox([widgets.Label("Category"), category])
-    freepaid_button = widgets.ToggleButtons(options=["Free", "Paid"])
-    content = widgets.RadioButtons(options=contents, desciption="Content rating:")
-    content_widget = widgets.VBox([widgets.Label("Content Rating"), content])
+size = widgets.IntSlider(max = 110)
+size_widget = widgets.VBox([widgets.Label("Size [Mb]"), size])
+category = widgets.Dropdown(options=categories)
+category_widget = widgets.VBox([widgets.Label("Category"), category])
+freepaid_button = widgets.ToggleButtons(options=["Free", "Paid"])
+content = widgets.RadioButtons(options=contents, desciption="Content rating:")
+content_widget = widgets.VBox([widgets.Label("Content Rating"), content])
 
 ### SCOREBOARDS and SCORE COUNTING ###
 
