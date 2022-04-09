@@ -418,60 +418,89 @@ def chart_size_quantile(): #funckja
 
 ########### APP APP ###############
 
-### WIDGETS ###
-
 import ipywidgets as widgets
 from IPython.display import display
 
-categories = data["Category"].sort_values().unique()
-category_scoreboard = pd.merge(data["Category"].drop_duplicates(), rev_scores, on="Category", how="left").fillna(0)
+def app():
+    def get_scores():
+        category_score = float(category_scoreboard[category_scoreboard["Category"] == category.value]["Category Score"])
+        content_score = float( content_scoreboard[content_scoreboard["Content Rating"] == content.value]["Score content"] )
 
-contents = data["Content Rating"].unique()
-content_scoreboard = pd.merge(data["Content Rating"].drop_duplicates(), content_scores, on="Content Rating", how="left").fillna(0) 
+        if freepaid_button.value == "Free": 
+            subscription_score = round(stos_mean_i)
+        else:
+            subscription_score = 1
 
-size = widgets.IntSlider(max = 110)
-size_widget = widgets.VBox([widgets.Label("Size [Mb]"), size])
-category = widgets.Dropdown(options=categories)
-category_widget = widgets.VBox([widgets.Label("Category"), category])
-freepaid_button = widgets.ToggleButtons(options=["Free", "Paid"])
-content = widgets.RadioButtons(options=contents, desciption="Content rating:")
-content_widget = widgets.VBox([widgets.Label("Content Rating"), content])
+        if size.value < 100:
+            size_input = size.value
+        else:
+            size_input = 100
+        size_score = float(size_scores[size_scores["Size category"] == (size_input//10)]["Score size"])
 
-### SCOREBOARDS and SCORE COUNTING ###
+        cat_max = category_scoreboard["Category Score"].max()
+        cont_max = content_scoreboard["Score content"].max()
+        size_max = size_scores["Score size"].max()
 
-category_score = float(category_scoreboard[category_scoreboard["Category"] == category.value]["Category Score"])
-content_score = float( content_scoreboard[content_scoreboard["Content Rating"] == content.value]["Score content"] )
+        max_score = round ((cat_max + cont_max + size_max) * round(stos_mean_i))
 
-if freepaid_button.value == "Free": 
-    subscription_score = round(stos_mean_i)
-else:
-    subscription_score = 1
+        score = round ((category_score + size_score + content_score) * subscription_score,2)
+        score_prc = round(score*100/max_score,2)
 
-if size.value < 100:
-    size_input = size.value
-else:
-    size_input = 100
-size_score = float(size_scores[size_scores["Size category"] == (size_input//10)]["Score size"])
+        if subscription_score == 1 :
+            paid_app_message = f"free apps got x{stos_mean_i} score multiplier"
+        else:
+            paid_app_message = "max"
+        
+        print(f"Size score:           {size_score} / {size_max}")
+        print(f"Category score:       {category_score} / {cat_max}")
+        print(f"Free/paid multiplier: x{subscription_score} - {paid_app_message}")
+        print(f"Content score:        {content_score} / {cont_max}")
+        print(f"---------------------------------------")
+        print(f"TOTAL SCORE:          {score} / {max_score}")
+        print(f"TOTAL SCORE %         {score_prc}% / 100.00%")
 
-cat_max = category_scoreboard["Category Score"].max()
-cont_max = content_scoreboard["Score content"].max()
-size_max = size_scores["Score size"].max()
+        from math import pi
+        values = [size_score/size_max, category_score/cat_max, content_score/cont_max, subscription_score/round(stos_mean_i)]
+        values_prc = []
+        i = 0
+        while i < len(values):
+            values_prc.append(round(values[i] * 100, 2))
+            i += 1
 
-max_score = round ((cat_max + cont_max + size_max) * round(stos_mean_i))
+        N = len(values_prc)
+        values_prc += values_prc[:1]
+        angles = [n/float(N) * 2 * pi for n in range(N)]
+        angles += angles[0:1]
 
-score = round ((category_score + size_score + content_score) * subscription_score,2)
-score_prc = round(score*100/max_score,2)
+        plt.polar(angles, values_prc)
+        plt.xticks(angles[:-1],["Size", "Category", "Content", "Free/Paid"])
+        plt.ylim(0,100)
+        plt.yticks([25,50,75,100],["25%","50%","75%","100%"],alpha=.3)
+        plt.fill(angles, values_prc, alpha =.3)
+        plt.show()
 
-if subscription_score == 1 :
-    paid_app_message = f"free apps got x{stos_mean_i} score multiplier"
-else:
-    paid_app_message = "max"
+    categories = data["Category"].sort_values().unique()
+    category_scoreboard = pd.merge(data["Category"].drop_duplicates(), rev_scores, on="Category", how="left").fillna(0)
 
-def print_app_stats():    
-    print(f"Size score:           {size_score} / {size_max}")
-    print(f"Category score:       {category_score} / {cat_max}")
-    print(f"Free/paid multiplier: x{subscription_score} - {paid_app_message}")
-    print(f"Content score:        {content_score} / {cont_max}")
-    print(f"---------------------------------------")
-    print(f"TOTAL SCORE:          {score} / {max_score}")
-    print(f"TOTAL SCORE %         {score_prc}% / 100.00%")
+    contents = data["Content Rating"].unique()
+    content_scoreboard = pd.merge(data["Content Rating"].drop_duplicates(), content_scores, on="Content Rating", how="left").fillna(0) 
+
+    size = widgets.IntSlider(max = 110)
+    size_widget = widgets.VBox([widgets.Label("Size [Mb]"), size])
+    category = widgets.Dropdown(options=categories)
+    category_widget = widgets.VBox([widgets.Label("Category"), category])
+    freepaid_button = widgets.ToggleButtons(options=["Free", "Paid"])
+    content = widgets.RadioButtons(options=contents, desciption="Content rating:")
+    content_widget = widgets.VBox([widgets.Label("Content Rating"), content])
+
+    calculate_button = widgets.Button(description="CALCULATE SCORE", layout=widgets.Layout(width='25%', height='40px'), button_style="primary")
+    output = widgets.Output()
+
+    def on_button_clicked(b):
+        with output:
+            output.clear_output()
+            get_scores()
+
+    calculate_button.on_click(on_button_clicked)
+
+    display(category_widget,content_widget,size_widget,freepaid_button, calculate_button, output)
