@@ -72,6 +72,7 @@ paid_type =data_type[data_type['Type']== 'Paid']
 def type_charts_rating(): #funkcja
     free_type['Rating'].plot.density(xlim=(0, free_type['Rating'].max()))
     paid_type['Rating'].plot.density(xlim=(0, paid_type['Rating'].max()),color = 'k')
+    plt.figure(figsize=(20,10))
     plt.title('Density plot for Free/Paid applications vs rating')
     plt.xlabel('Rating')
     plt.legend(['Density plot for free apps', 'Density plot for paid apps'])
@@ -82,6 +83,7 @@ def type_charts_rating(): #funkcja
 def type_charts_installs(): #funkcja
     free_type['Installs'].plot.density(xlim=(0, free_type['Installs'].max()))
     paid_type['Installs'].plot.density(xlim=(0, paid_type['Installs'].max()),color = 'k')
+    plt.figure(figsize=(20,10))
     plt.title('Density plot for Free/Paid applications vs installs')
     plt.xlabel('Installs')
     plt.legend(['Density plot for free apps', 'Density plot for paid apps'])
@@ -92,6 +94,7 @@ def type_charts_installs(): #funkcja
 def type_charts_reviews(): # funkcja
     free_type["Reviews"].plot.density(xlim=(0, free_type['Reviews'].max()))
     paid_type['Reviews'].plot.density(xlim=(0, paid_type['Reviews'].max()),color = 'k')
+    plt.figure(figsize=(20,10))
     plt.title('Density plot for Free/Paid applications vs reviews')
     plt.xlabel('Reviews')
     plt.legend(['Density plot for free apps', 'Density plot for paid apps'])
@@ -224,6 +227,7 @@ total_frame = pd.DataFrame(frame)
 
 file['Total'] = total_frame['Total']
 file = file[['Category', 'Type', 'Size mb', 'Content Rating', 'Category Score', 'Score content', 'Score size', 'Total']]
+file = file.drop_duplicates(subset="Total", keep='first')
 
 cm = sns.light_palette('green', as_cmap=True)
 s = file.style.background_gradient(cmap=cm, low=0, high=1, axis=0)
@@ -256,6 +260,7 @@ def chart_density_app (): #funkcja
             n_categories += 1
             index += 1
             if n_categories == 5 or  index == len(seb_categories.keys()):
+                plt.figure(figsize=(20,10))
                 plt.title(f'Density plot for category of applications vs {col} - part {n_plot}')
                 plt.xlabel(col)
                 plt.legend()
@@ -285,6 +290,7 @@ def chart_density_rating_app (): #funkcja
                 temp[col].plot.density(color='r')
             except ValueError:
                 print(f'There is no data "{content_rating}" for column "{col}"')
+            plt.figure(figsize=(20,10))
             plt.title(f'Density plot of content rating "{content_rating}" for column "{col}"')
             plt.xlabel(col)
             plt.show()
@@ -296,6 +302,7 @@ def installs_category_no ():  #funkcja
     for cat in dane["Category"].unique():
         temp = dane[dane['Category'] == cat]
         temp['Installs'].value_counts().plot(kind='bar', color=('red','green', 'blue', 'yellow', 'black'))
+        plt.figure(figsize=(20,10))
         plt.title(f'Installs for category "{cat}"')
         plt.show()
 
@@ -314,6 +321,7 @@ def chart_free_type_no (): # funkcja
   #podział darmowe i płatne
     print(data_all["Type"].value_counts())
     data_all["Type"].value_counts().plot(kind='bar',figsize=(7, 6), rot=0 )
+    plt.figure(figsize=(20,10))
     plt.ylabel("Ilość aplikacji", labelpad=14)
     plt.title("Podział aplikacji na darmowe i płatne", y=1.02)
     plt.grid(b=True, axis='y')
@@ -331,6 +339,7 @@ def chart_size_data_no_data ():
     print("posiadamy dane o rozmiarze : ", z)
     print("Varies with device : ",h)
     ax.bar(zh_name,zh,width = 0.45)
+    plt.figure(figsize=(20,10))
     plt.ylabel("Ilość aplikacji", labelpad=14)
     plt.title("Podział aplikacji na Size", y=1.02)
     plt.grid(b=True, axis='y')
@@ -362,6 +371,7 @@ def chart_installations_avg_comp (): #funkcja
     print("pow sr: ", z)
     print("poniżej sr : ",h)
     ax.bar(zh_name,zh,width = 0.45)
+    plt.figure(figsize=(20,10))
     plt.ylabel("Ilość aplikacji", labelpad=14)
     plt.title("Podział na instalacje", y=1.02)
     plt.grid(b=True, axis='y')
@@ -371,6 +381,7 @@ def chart_no_install (): #funkcja
 
     #podział ze wzgledu na ilość instalacji
     data_all["Reviews"].value_counts().plot(kind='barh',figsize=(15, 11), rot=0 )
+    plt.figure(figsize=(20,10))
     plt.ylabel("OIlość instalacji", labelpad=14)
     plt.xlabel("Ilość aplikacji", labelpad=14)
     plt.title("Podział na ilość instalacji", y=1.02)
@@ -392,6 +403,7 @@ def chart_reviews_avg_comp (): #funkcja
     print("pow sr: ", z)
     print("poniżej sr : ",h)
     ax.bar(zh_name,zh,width = 0.45)
+    plt.figure(figsize=(20,10))
     plt.ylabel("Ilość aplikacji", labelpad=14)
     plt.title("Podział na Reviews", y=1.02)
     plt.grid(b=True, axis='y')
@@ -403,7 +415,7 @@ def chart_reviews_avg_comp (): #funkcja
 
 def chart_size_quantile(): #funckja
 
-   
+    plt.figure(figsize=(20,10))
     plt.figure(figsize=(20,10))
     quantiles = np.arange(0.3, 1, 0.1).round(1)
     quantiles.round()
@@ -469,6 +481,7 @@ def get_scores():
     plt.yticks([25,50,75,100],["25%","50%","75%","100%"],alpha=.3)
     plt.fill(angles, values_prc, alpha =.3)
     plt.show()
+    
 
     print(f"Size score:           {size_score} / {size_max}")
     print(f"Category score:       {category_score} / {cat_max}")
@@ -495,7 +508,10 @@ content_widget = widgets.VBox([widgets.Label("Content Rating"), content])
 calculate_button = widgets.Button(description="CALCULATE SCORE", layout=widgets.Layout(width='98%', height='80px'), button_style="primary")
 output = widgets.Output()
 
+import time
+
 def on_button_clicked(b):
+    time.sleep(1)
     with output:
         output.clear_output()
         get_scores()
