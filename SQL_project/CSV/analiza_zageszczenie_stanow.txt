@@ -1,0 +1,79 @@
+"state","party","zagęszczenie_stanu","liczba_gł_republikanie","liczba_gł_demokraci"
+Montana,Democrat,"0 - 50",754301,447813
+Nebraska,Democrat,"0 - 50",754301,447813
+New Mexico,Democrat,"0 - 50",754301,447813
+Nevada,Democrat,"0 - 50",754301,447813
+Idaho,Democrat,"0 - 50",754301,447813
+New Mexico,Republican,"0 - 50",754301,447813
+Nebraska,Republican,"0 - 50",754301,447813
+Wyoming,Democrat,"0 - 50",754301,447813
+South Dakota,Republican,"0 - 50",754301,447813
+Idaho,Republican,"0 - 50",754301,447813
+Montana,Republican,"0 - 50",754301,447813
+South Dakota,Democrat,"0 - 50",754301,447813
+Nevada,Republican,"0 - 50",754301,447813
+Texas,Republican,"100 - 150",7414435,4784675
+Kentucky,Democrat,"100 - 150",7414435,4784675
+Missouri,Republican,"100 - 150",7414435,4784675
+Kentucky,Republican,"100 - 150",7414435,4784675
+Washington,Republican,"100 - 150",7414435,4784675
+Utah,Democrat,"100 - 150",7414435,4784675
+Tennessee,Republican,"100 - 150",7414435,4784675
+Tennessee,Democrat,"100 - 150",7414435,4784675
+Colorado,Democrat,"100 - 150",7414435,4784675
+Texas,Democrat,"100 - 150",7414435,4784675
+Utah,Republican,"100 - 150",7414435,4784675
+South Carolina,Republican,"100 - 150",7414435,4784675
+Illinois,Republican,"100 - 150",7414435,4784675
+Washington,Democrat,"100 - 150",7414435,4784675
+Oregon,Republican,"100 - 150",7414435,4784675
+Missouri,Democrat,"100 - 150",7414435,4784675
+Illinois,Democrat,"100 - 150",7414435,4784675
+Oregon,Democrat,"100 - 150",7414435,4784675
+South Carolina,Democrat,"100 - 150",7414435,4784675
+New York,Democrat,"1000 +",1304042,2695048
+New Jersey,Democrat,"1000 +",1304042,2695048
+New York,Republican,"1000 +",1304042,2695048
+New Jersey,Republican,"1000 +",1304042,2695048
+North Carolina,Democrat,"150 - 200",5989621,4909303
+Louisiana,Democrat,"150 - 200",5989621,4909303
+Michigan,Republican,"150 - 200",5989621,4909303
+North Carolina,Republican,"150 - 200",5989621,4909303
+Wisconsin,Democrat,"150 - 200",5989621,4909303
+Georgia,Republican,"150 - 200",5989621,4909303
+Louisiana,Republican,"150 - 200",5989621,4909303
+Michigan,Democrat,"150 - 200",5989621,4909303
+Georgia,Democrat,"150 - 200",5989621,4909303
+Wisconsin,Republican,"150 - 200",5989621,4909303
+Indiana,Republican,"150 - 200",5989621,4909303
+Indiana,Democrat,"150 - 200",5989621,4909303
+Ohio,Republican,"200 - 500",5803577,4524528
+Hawaii,Democrat,"200 - 500",5803577,4524528
+Pennsylvania,Republican,"200 - 500",5803577,4524528
+Pennsylvania,Democrat,"200 - 500",5803577,4524528
+Hawaii,Republican,"200 - 500",5803577,4524528
+Florida,Democrat,"200 - 500",5803577,4524528
+Ohio,Democrat,"200 - 500",5803577,4524528
+Florida,Republican,"200 - 500",5803577,4524528
+Arkansas,Republican,"50 - 100",2816997,1852505
+Mississippi,Republican,"50 - 100",2816997,1852505
+Mississippi,Democrat,"50 - 100",2816997,1852505
+Iowa,Republican,"50 - 100",2816997,1852505
+Iowa,Democrat,"50 - 100",2816997,1852505
+Arkansas,Democrat,"50 - 100",2816997,1852505
+West Virginia,Democrat,"50 - 100",2816997,1852505
+West Virginia,Republican,"50 - 100",2816997,1852505
+Oklahoma,Democrat,"50 - 100",2816997,1852505
+Arizona,Republican,"50 - 100",2816997,1852505
+Alabama,Republican,"50 - 100",2816997,1852505
+Arizona,Democrat,"50 - 100",2816997,1852505
+Oklahoma,Republican,"50 - 100",2816997,1852505
+Alabama,Democrat,"50 - 100",2816997,1852505
+Virginia,Republican,"500 - 1000",2958693,5121468
+California,Republican,"500 - 1000",2958693,5121468
+Virginia,Democrat,"500 - 1000",2958693,5121468
+Delaware,Republican,"500 - 1000",2958693,5121468
+Delaware,Democrat,"500 - 1000",2958693,5121468
+California,Democrat,"500 - 1000",2958693,5121468
+Maryland,Republican,"500 - 1000",2958693,5121468
+Maryland,Democrat,"500 - 1000",2958693,5121468

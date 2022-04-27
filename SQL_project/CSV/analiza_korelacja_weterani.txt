@@ -1,0 +1,4 @@
+"party","korelacja_weterani"
+Democrat,0.7914257469703316
+Republican,0.7019242486903469
+

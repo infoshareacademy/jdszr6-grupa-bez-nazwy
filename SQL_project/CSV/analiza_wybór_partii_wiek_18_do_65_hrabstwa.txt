@@ -1,0 +1,3 @@
+"party","średni_udział_18_do_65","liczba_wygranych"
+Democrat,61.48,708
+Republican,59.39,2091
