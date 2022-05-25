@@ -26,10 +26,9 @@ asyncio.set_event_loop(loop)
 
 # pickle_a=open('sqrt_xgb.pkl',"rb")
 # model_v2=pickle.load(pickle_a) # our model
+cwd = os.getcwd().replace('\\','/') #current working directory
 
-cwd = os.getcwd() #current working directory
-
-file = pd.read_csv('C:/Users/andrz/Desktop/ISA/Projekt/jdszr6-grupa-bez-nazwy/ML_project/insurance.csv')
+file = pd.read_csv(cwd+'/ML_project/insurance.csv')
 
 file['user_ID'] = pd.DataFrame(file.index).astype(int)
 file = file[['user_ID', 'age', 'sex', 'bmi', 'children', 'smoker', 'region', 'charges']]
@@ -62,10 +61,9 @@ model_v2=xgb.XGBRegressor( base_score=0.5, booster='gbtree', colsample_bylevel=1
 model_v2.fit(X_train,y_train_sqrt)
 
 
+def predict_chance(df_pred):
 
-def predict_chance(age,sex_male,bmi,children,smoker_yes,region_northeast, region_southeast, region_southwest):
-
-    prediction=(model_v2.predict([[age,sex_male,bmi,children,smoker_yes,region_northeast, region_southeast, region_southwest]]))**2 #predictions using our model
+    prediction=model_v2.predict(df_pred) #predictions using our model
     return prediction 
 
 
@@ -96,20 +94,23 @@ def main():
     pass
     bmi = weight / (height**2)
 
-    
-    df_pred = X
-    df_pred['age'] = df_pred['age'].apply(lambda x: x)
-    df_pred['sex_male'] = df_pred['sex_male'].apply(lambda x: 1 if x == 'male' else 0)
-    df_pred['bmi'] = df_pred['bmi'].apply(lambda x: x)
-    df_pred['children'] = df_pred['children'].apply(lambda x: x)
-    df_pred['smoker_yes'] = df_pred['smoker_yes'].apply(lambda x: 1 if x == 'yes' else 0)
-    df_pred['region_southeast'] = df_pred['region_southeast'].apply(lambda x: 1 if x == 'southeast' else 0)
-    df_pred['region_northeast'] = df_pred['region_northeast'].apply(lambda x: 1 if x == 'northeast' else 0)
-    df_pred['region_southwest'] = df_pred['region_southwest'].apply(lambda x: 1 if x == 'southwest' else 0)
+    df_pred = pd.DataFrame(data=[[
+                                age,
+                                (lambda x: 1 if x == 'male' else 0)(sex),
+                                (lambda x: 1 if x == 'female' else 0)(sex),
+                                bmi,
+                                children,
+                                (lambda x: 1 if x == 'yes' else 0)(smoker),
+                                (lambda x: 1 if x == 'northeast' else 0)(region),
+                                (lambda x: 1 if x == 'northwest' else 0)(region),
+                                (lambda x: 1 if x == 'southeast' else 0)(region),
+                                (lambda x: 1 if x == 'southwest' else 0)(region)
+                                ]],
+                            columns = X.columns)
 
     result=""
     if st.button("Predict"):
-        result=predict_chance(df_pred['age'],df_pred['sex_male'],df_pred['bmi'],df_pred['children'],df_pred['smoker_yes'],df_pred['region_southeast'], df_pred['region_northeast'], df_pred['region_southwest']) #result will be displayed if button is pressed
+        result=predict_chance(df_pred) #result will be displayed if button is pressed
     st.success("The predicted value of Your charge is{}".format(result))
 
     
