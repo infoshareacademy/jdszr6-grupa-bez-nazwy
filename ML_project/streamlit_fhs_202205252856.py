@@ -59,21 +59,24 @@ model_v2=xgb.XGBRegressor( base_score=0.5, booster='gbtree', colsample_bylevel=1
              reg_lambda=1, scale_pos_weight=1, subsample=1, tree_method='exact',
              validate_parameters=1, verbosity=None)
 
-model_v2.fit(X_train.to_numpy(),y_train_sqrt.to_numpy())
+model_v2.fit(X_train,y_train_sqrt)
 
 
 
 def predict_chance(age,sex_male,bmi,children,smoker_yes,region_northeast, region_southeast, region_southwest):
 
-    prediction=model_v2.predict([[age,sex_male,bmi,children,smoker_yes,region_northeast, region_southeast, region_southwest]]) #predictions using our model
+    prediction=(model_v2.predict([[age,sex_male,bmi,children,smoker_yes,region_northeast, region_southeast, region_southwest]]))**2 #predictions using our model
     return prediction 
 
 
 def main():
-    st.title("Health Insurance Prediction") #simple title for the app
+    # st.title("Health Insurance Prediction") #simple title for the app
     html_temp="""
         <div>
-        <h2><center>Calculation of health insurance charge value and potential offer for cost reduction</center></h2>
+        <body style = 'background-color: deepskyblue1;'>
+        <h1><font size ='10' color='green'><center>Health Insurance Prediction</center></p></center></font></h1>
+        <h2><font size ='6' color ='blue'><center>Calculation of health insurance charge value and potential offer for cost reduction</center></p></font></h2>
+        </body>
         </div>
         """
     st.markdown(html_temp,unsafe_allow_html=True) #a simple html 
@@ -95,10 +98,10 @@ def main():
 
     
     df_pred = X
-    df_pred['age'] = df_pred['age'].apply(lambda x: x in range(100))
+    df_pred['age'] = df_pred['age'].apply(lambda x: x)
     df_pred['sex_male'] = df_pred['sex_male'].apply(lambda x: 1 if x == 'male' else 0)
-    df_pred['bmi'] = df_pred['bmi'].apply(lambda x: x in range(100))
-    df_pred['children'] = df_pred['children'].apply(lambda x: x in range(10))
+    df_pred['bmi'] = df_pred['bmi'].apply(lambda x: x)
+    df_pred['children'] = df_pred['children'].apply(lambda x: x)
     df_pred['smoker_yes'] = df_pred['smoker_yes'].apply(lambda x: 1 if x == 'yes' else 0)
     df_pred['region_southeast'] = df_pred['region_southeast'].apply(lambda x: 1 if x == 'southeast' else 0)
     df_pred['region_northeast'] = df_pred['region_northeast'].apply(lambda x: 1 if x == 'northeast' else 0)
