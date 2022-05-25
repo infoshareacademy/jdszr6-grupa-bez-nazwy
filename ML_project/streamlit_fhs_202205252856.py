@@ -28,7 +28,7 @@ asyncio.set_event_loop(loop)
 # model_v2=pickle.load(pickle_a) # our model
 cwd = os.getcwd().replace('\\','/') #current working directory
 
-file = pd.read_csv(cwd+'/ML_project/insurance.csv')
+file = pd.read_csv('C:/Users/andrz/Desktop/ISA/Projekt/jdszr6-grupa-bez-nazwy/ML_project/insurance.csv')
 
 file['user_ID'] = pd.DataFrame(file.index).astype(int)
 file = file[['user_ID', 'age', 'sex', 'bmi', 'children', 'smoker', 'region', 'charges']]
@@ -63,7 +63,7 @@ model_v2.fit(X_train,y_train_sqrt)
 
 def predict_chance(df_pred):
 
-    prediction=model_v2.predict(df_pred) #predictions using our model
+    prediction=(model_v2.predict(df_pred))**2 #predictions using our model
     return prediction 
 
 
