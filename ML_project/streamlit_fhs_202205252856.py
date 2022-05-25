@@ -13,15 +13,15 @@ from sklearn.model_selection import train_test_split
 import os
 
 
-async def main():
-    async with aiohttp.ClientSession() as session:
-        async with session.get('http://httpbin.org/get') as resp:
-            print(resp.status)
-            print(await resp.text())
+# async def main():
+#     async with aiohttp.ClientSession() as session:
+#         async with session.get('http://httpbin.org/get') as resp:
+#             print(resp.status)
+#             print(await resp.text())
 
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
-loop.run_until_complete(main())
+# loop.run_until_complete(main())
 
 
 # pickle_a=open('sqrt_xgb.pkl',"rb")
@@ -59,27 +59,12 @@ model_v2=xgb.XGBRegressor( base_score=0.5, booster='gbtree', colsample_bylevel=1
              reg_lambda=1, scale_pos_weight=1, subsample=1, tree_method='exact',
              validate_parameters=1, verbosity=None)
 
-model_v2.fit(X_train,y_train_sqrt)
+model_v2.fit(X_train.to_numpy(),y_train_sqrt.to_numpy())
 
 
 
 def predict_chance(age,sex_male,bmi,children,smoker_yes,region_northeast, region_southeast, region_southwest):
-    # age=st.selectbox("Enter your age", range(100))
-    # pass
-    # sex=st.selectbox("Select Your gender", ['male', 'female'])
-    # pass
-    # weight=st.selectbox("Enter Your weight", range(1,250))
-    # pass
-    # height=st.selectbox("Enter Your height", range(1,230))
-    # pass
-    # children = st.selectbox('Enter no of Your children', range(10))
-    # pass
-    # smoker=st.selectbox('Are You currently smoking?', ['yes', 'no']) 
-    # pass
-    # region=st.selectbox('Enter Your region', ['southeast', 'northeast', 'southwest', 'nothwest'])
-    # pass
-    # bmi = weight / (height**2)
-    
+
     prediction=model_v2.predict([[age,sex_male,bmi,children,smoker_yes,region_northeast, region_southeast, region_southwest]]) #predictions using our model
     return prediction 
 
@@ -108,9 +93,8 @@ def main():
     pass
     bmi = weight / (height**2)
 
-    # def transform(df_pred):
+    
     df_pred = X
-    # columns= ['age','sex_male','bmi','children','smoker_yes','region_northeast', 'region_southeast', 'region_southwest'])
     df_pred['age'] = df_pred['age'].apply(lambda x: x in range(100))
     df_pred['sex_male'] = df_pred['sex_male'].apply(lambda x: 1 if x == 'male' else 0)
     df_pred['bmi'] = df_pred['bmi'].apply(lambda x: x in range(100))
@@ -126,42 +110,7 @@ def main():
     st.success("The predicted value of Your charge is{}".format(result))
 
     
-    
-# def transform(df_pred):
-#     df_pred = X
-#      # columns= ['age','sex_male','bmi','children','smoker_yes','region_northeast', 'region_southeast', 'region_southwest'])
-#     df_pred['age'] = df_pred['age'].apply(lambda x: x in range(100))
-#     df_pred['sex_male'] = df_pred['sex_male'].apply(lambda x: 1 if x == 'male' else 0)
-#     df_pred['bmi'] = df_pred['bmi'].apply(lambda x: x in range(100))
-#     df_pred['children'] = df_pred['children'].apply(lambda x: x in range(10))
-#     df_pred['smoker_yes'] = df_pred['smoker_yes'].apply(lambda x: 1 if x == 'yes' else 0)
-#     df_pred['region_southeast'] = df_pred['region_southeast'].apply(lambda x: 1 if x == 'southeast' else 0)
-#     df_pred['region_northeast'] = df_pred['region_northeast'].apply(lambda x: 1 if x == 'northeast' else 0)
-#     df_pred['region_southwest'] = df_pred['region_southwest'].apply(lambda x: 1 if x == 'southwest' else 0)
-        
-    # result=""
-    # if st.button("Predict"):
-    #     result=predict_chance(df_pred['age'],df_pred['sex_male'],df_pred['bmi'],df_pred['children'],df_pred['smoker_yes'],df_pred['region_southeast'], df_pred['region_northeast'], df_pred['region_southwest']) #result will be displayed if button is pressed
-    # st.success("The predicted value of Your charge is{}".format(result))
 
-
-    # result=""
-    # if st.button("Predict"):
-    #     result=predict_chance(age,sex,weight,height,children,smoker,region) #result will be displayed if button is pressed
-    # st.success("The predicted value of Your charge is{}".format(result))
-
-# def_transform(data):
-#     result = 3
-#     if(data=='High school diploma'):
-#         result = 0
-#     elif(data=='Undergraduate degree'):
-#         result = 1
-#     elif(data=='Postgraduate degree'):
-#         result = 2
-#     return(result)df_pred['education'] = df_pred['education'].apply(transform)
-#         # bmi = weight / (height**2) #giving inputs as used in building the model
-    
-        
 if __name__=='__main__':
     main()
     pass
