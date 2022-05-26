@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pickle 
 import streamlit as st
-
+import matplotlib.pyplot as plt
 import asyncio
 import aiohttp
 
@@ -59,6 +59,19 @@ model_v2=xgb.XGBRegressor( base_score=0.5, booster='gbtree', colsample_bylevel=1
 
 model_v2.fit(X_train.to_numpy(),y_train_sqrt.to_numpy())
 
+def value_on_hist(target, values):
+    bins = 100
+    plt.rcParams['axes.facecolor'] = 'none'
+    plt.grid(color="gray", alpha=0.25, linestyle='dashed')
+    p = values.hist(bins=bins, alpha=0.33)
+    bin_width = (values.max() - values.min()) /bins
+    bin_id = int(target/bin_width)-1
+    plt.plot([target,target], [1,70], "o--", color='black')
+    plt.xlabel("charges")
+    plt.ylabel("quantity / density")
+    plt.annotate(f"      {target} \nyour value is here", [target, 35], 
+                    font={'size':20, 'family':'courier new', 'weight':'bold'},
+                    color = "black", rotation = 90, verticalalignment = 'center', horizontalalignment = 'center')
 
 def predict_chance(model, df_pred):
     prediction = round(float(model.predict(df_pred))**2,2) #predictions using our model
@@ -125,8 +138,10 @@ def main():
         
         st.success("The predicted value of client's charges is: {}".format(prediction))
         st.success("                        Client assigned to: \"{}\" group".format(group))
+        st.set_option('deprecation.showPyplotGlobalUse', False)
+        st.pyplot(fig=value_on_hist(prediction, file["charges"]))
 
-    
+
 
 if __name__=='__main__':
     main()
