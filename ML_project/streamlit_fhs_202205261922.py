@@ -28,7 +28,7 @@ asyncio.set_event_loop(loop)
 # model_v2=pickle.load(pickle_a) # our model
 cwd = os.getcwd().replace('\\','/') #current working directory
 
-file = pd.read_csv(cwd+'/ML_project/insurance.csv')
+file = pd.read_csv('C:/Users/andrz/Desktop/ISA/Projekt/jdszr6-grupa-bez-nazwy/ML_project/insurance.csv')
 
 file['user_ID'] = pd.DataFrame(file.index).astype(int)
 file = file[['user_ID', 'age', 'sex', 'bmi', 'children', 'smoker', 'region', 'charges']]
@@ -98,9 +98,9 @@ def value_on_hist(target, values):
     plt.plot([target,target], [1,70], "o--", color='black')
     plt.xlabel("charges")
     plt.ylabel("quantity / density")
-    plt.annotate(f"      {target} \nyour value is here", [target, 35], 
-                    font={'size':16, 'family':'courier new', 'weight':'bold'},
-                    color = "black", rotation = 90, verticalalignment = 'center', horizontalalignment = 'center')
+    plt.annotate(f"      {target} \nClient's charge value is here", [target, 35], 
+                    font={'size':14, 'family':'courier new', 'weight':'bold'},
+                    color = "red", rotation = 90, verticalalignment = 'center', horizontalalignment = 'center')
 
 def main():
     # st.title("Health Insurance Prediction") #simple title for the app
