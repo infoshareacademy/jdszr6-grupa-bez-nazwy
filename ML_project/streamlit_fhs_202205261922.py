@@ -41,7 +41,6 @@ file = file[['user_ID', 'age', 'sex_female', 'sex_male', 'bmi', 'children', 'smo
 file = file.sort_values(by='user_ID')
 file = file[['age', 'sex_female', 'sex_male', 'bmi', 'children', 'smoker_yes', 'region_northeast', 'region_northwest', 'region_southeast', 'region_southwest', 'charges']]
 
-
 X = file.drop(columns=['charges'], axis=1)
 y = file['charges']
 
@@ -58,34 +57,53 @@ model_v2=xgb.XGBRegressor( base_score=0.5, booster='gbtree', colsample_bylevel=1
              reg_lambda=1, scale_pos_weight=1, subsample=1, tree_method='exact',
              validate_parameters=1, verbosity=None)
 
-model_v2.fit(X_train,y_train_sqrt)
+model_v2.fit(X_train.to_numpy(),y_train_sqrt.to_numpy())
 
 
-def predict_chance(df_pred):
-
-    prediction=(model_v2.predict(df_pred))**2 #predictions using our model
+def predict_chance(model, df_pred):
+    prediction = round(float(model.predict(df_pred))**2,2) #predictions using our model
     return prediction 
 
+def assign_to_group(df_pred, pred): #assign client to group according to charges value
+    groups = ["1st - economical", "2nd - optimal", "3rd - exclusive"]
+    limit_1 = float(df_pred['age']) * 295 
+    limit_2 = float(df_pred['age']) * 295 + 20000
+    if float(pred) < limit_1:
+        group = groups[0]
+    elif float(pred) < limit_2:
+        group = groups[1]
+    else:
+        group = groups[2]
+    return group
+
+def get_discount(df_pred, pred):
+    discounts = ['2%', '5%', '10%']
+    limit_1 = float(df_pred['age']) * 295 
+    limit_2 = float(df_pred['age']) * 295 + 20000
+    if float(pred) < limit_1:
+        discount = discounts[0]
+    elif float(pred) < limit_2:
+        discount = discounts[1]
+    else:
+        discount = discounts[2]
+    return discount
 
 def main():
     # st.title("Health Insurance Prediction") #simple title for the app
     html_temp="""
         <div>
-        <body bgcolor ='deepskyblue1'>
-            <h1><font size ='10' color='green'><center>Health Insurance Prediction</center></p></center></font></h1>
-        </body>
-        <h2><font size ='6' color ='blue'><center>Calculation of health insurance charge value and potential offer for cost reduction</center></p></font></h2>
-        </body>
+        <h1><font size = '10' color = 'green'><center><strong>Health Insurance Prediction</strong></center></font></h1>
+        <h2><font size = '5'><center>Calculation of health insurance charge value <br> and potential offer for cost reduction</font></center></h2>
         </div>
         """
     st.markdown(html_temp,unsafe_allow_html=True) #a simple html 
-    age=st.selectbox("Enter your age", range(100))
+    age=st.select_slider("Enter your age", range(120))
     pass
     sex=st.selectbox("Select Your gender", ['male', 'female'])
     pass
-    weight=st.selectbox("Enter Your weight", range(1,250))
+    weight=st.select_slider("Enter Your weight [kg]", range(5,250))
     pass
-    height=st.selectbox("Enter Your height", range(1,230))
+    height=st.select_slider("Enter Your height [m]", range(1,230))
     pass
     children = st.selectbox('Enter no of Your children', range(10))
     pass
@@ -93,7 +111,9 @@ def main():
     pass
     region=st.selectbox('Enter Your region', ['southeast', 'northeast', 'southwest', 'nothwest'])
     pass
-    bmi = weight / (height**2)
+    bmi = weight / ((height/100)**2)
+
+    
 
     df_pred = pd.DataFrame(data=[[
                                 age,
@@ -109,10 +129,18 @@ def main():
                                 ]],
                             columns = X.columns)
 
-    result=""
-    if st.button("Predict"):
-        result=predict_chance(df_pred) #result will be displayed if button is pressed
-    st.success("The predicted value of Your charge is{}".format(result))
+    prediction = ""
+    group = ""
+    discount =""
+
+    if st.button("Predict"): #result will be displayed if button is pressed
+        prediction = predict_chance(model_v2, df_pred)
+        group = assign_to_group(df_pred, prediction)
+        discount = get_discount(df_pred, prediction)
+        
+        st.success("The predicted value of client's charges is: {}".format(prediction))
+        st.success("                        Client assigned to: \"{}\" group".format(group))
+        st.success("                        We can offer discount: {} of Your charge value ".format(discount))
 
     
 

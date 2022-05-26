@@ -28,7 +28,7 @@ asyncio.set_event_loop(loop)
 # model_v2=pickle.load(pickle_a) # our model
 cwd = os.getcwd().replace('\\','/') #current working directory
 
-file = pd.read_csv(cwd+'/ML_project/insurance.csv')
+file = pd.read_csv('C:/Users/andrz/Desktop/ISA/Projekt/jdszr6-grupa-bez-nazwy/ML_project/insurance.csv')
 
 file['user_ID'] = pd.DataFrame(file.index).astype(int)
 file = file[['user_ID', 'age', 'sex', 'bmi', 'children', 'smoker', 'region', 'charges']]
@@ -76,21 +76,34 @@ def assign_to_group(df_pred, pred): #assign client to group according to charges
         group = groups[2]
     return group
 
+def get_discount(df_pred, pred):
+    discounts = ['2%', '5%', '10%']
+    limit_1 = float(df_pred['age']) * 295 
+    limit_2 = float(df_pred['age']) * 295 + 20000
+    if float(pred) < limit_1:
+        discount = discounts[0]
+    elif float(pred) < limit_2:
+        discount = discounts[1]
+    else:
+        discount = discounts[2]
+    return discount
+
 def main():
-    st.title("Health Insurance Prediction") #simple title for the app
+    # st.title("Health Insurance Prediction") #simple title for the app
     html_temp="""
         <div>
-        <h2><center>Calculation of health insurance charge value and potential offer for cost reduction</center></h2>
+        <h1><font size = '10' color = 'green'><center><strong>Health Insurance Prediction</strong></center></font></h1>
+        <h2><font size = '5'><center>Calculation of health insurance charge value <br> and potential offer for cost reduction</font></center></h2>
         </div>
         """
     st.markdown(html_temp,unsafe_allow_html=True) #a simple html 
-    age=st.selectbox("Enter your age", range(100))
+    age=st.select_slider("Enter your age", range(120))
     pass
     sex=st.selectbox("Select Your gender", ['male', 'female'])
     pass
-    weight=st.selectbox("Enter Your weight", range(1,250))
+    weight=st.select_slider("Enter Your weight [kg]", range(5,250))
     pass
-    height=st.selectbox("Enter Your height", range(1,230))
+    height=st.select_slider("Enter Your height [m]", range(1,230))
     pass
     children = st.selectbox('Enter no of Your children', range(10))
     pass
@@ -118,13 +131,16 @@ def main():
 
     prediction = ""
     group = ""
+    discount =""
 
     if st.button("Predict"): #result will be displayed if button is pressed
         prediction = predict_chance(model_v2, df_pred)
         group = assign_to_group(df_pred, prediction)
+        discount = get_discount(df_pred, prediction)
         
         st.success("The predicted value of client's charges is: {}".format(prediction))
         st.success("                        Client assigned to: \"{}\" group".format(group))
+        st.success("                        We can offer discount: \"{}\" ".format(discount))
 
     
 
