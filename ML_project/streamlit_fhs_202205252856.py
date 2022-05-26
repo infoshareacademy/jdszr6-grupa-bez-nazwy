@@ -28,7 +28,7 @@ asyncio.set_event_loop(loop)
 # model_v2=pickle.load(pickle_a) # our model
 cwd = os.getcwd().replace('\\','/') #current working directory
 
-file = pd.read_csv(cwd+'/ML_project/insurance.csv')
+file = pd.read_csv('C:/Users/andrz/Desktop/ISA/Projekt/jdszr6-grupa-bez-nazwy/ML_project/insurance.csv')
 
 file['user_ID'] = pd.DataFrame(file.index).astype(int)
 file = file[['user_ID', 'age', 'sex', 'bmi', 'children', 'smoker', 'region', 'charges']]
@@ -58,20 +58,23 @@ model_v2=xgb.XGBRegressor( base_score=0.5, booster='gbtree', colsample_bylevel=1
              reg_lambda=1, scale_pos_weight=1, subsample=1, tree_method='exact',
              validate_parameters=1, verbosity=None)
 
-model_v2.fit(X_train.to_numpy(),y_train_sqrt.to_numpy())
+model_v2.fit(X_train,y_train_sqrt)
 
 
 def predict_chance(df_pred):
 
-    prediction=model_v2.predict(df_pred) #predictions using our model
+    prediction=(model_v2.predict(df_pred))**2 #predictions using our model
     return prediction 
 
 
 def main():
-    st.title("Health Insurance Prediction") #simple title for the app
+    # st.title("Health Insurance Prediction") #simple title for the app
     html_temp="""
         <div>
-        <h2><center>Calculation of health insurance charge value and potential offer for cost reduction</center></h2>
+        <body style = 'background-color: deepskyblue1;'>
+        <h1><font size ='10' color='green'><center>Health Insurance Prediction</center></p></center></font></h1>
+        <h2><font size ='6' color ='blue'><center>Calculation of health insurance charge value and potential offer for cost reduction</center></p></font></h2>
+        </body>
         </div>
         """
     st.markdown(html_temp,unsafe_allow_html=True) #a simple html 
