@@ -71,8 +71,9 @@ def main():
     # st.title("Health Insurance Prediction") #simple title for the app
     html_temp="""
         <div>
-        <body style = 'background-color: deepskyblue1;'>
-        <h1><font size ='10' color='green'><center>Health Insurance Prediction</center></p></center></font></h1>
+        <body bgcolor ='deepskyblue1'>
+            <h1><font size ='10' color='green'><center>Health Insurance Prediction</center></p></center></font></h1>
+        </body>
         <h2><font size ='6' color ='blue'><center>Calculation of health insurance charge value and potential offer for cost reduction</center></p></font></h2>
         </body>
         </div>
