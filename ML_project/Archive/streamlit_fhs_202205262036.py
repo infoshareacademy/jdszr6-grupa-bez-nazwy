@@ -77,7 +77,7 @@ def assign_to_group(df_pred, pred): #assign client to group according to charges
     return group
 
 def get_discount(df_pred, pred):
-    discounts = ['10%', '5%', '2%']
+    discounts = ['6%', '3%', '2%']
     limit_1 = float(df_pred['age']) * 295 
     limit_2 = float(df_pred['age']) * 295 + 20000
     if float(pred) < limit_1:
@@ -108,6 +108,7 @@ def main():
         <div>
         <h1><font size = '10' color = 'green'><center><strong>Health Insurance Prediction</strong></center></font></h1>
         <h2><font size = '5'><center>Calculation of health insurance charge value <br> and potential offer for cost reduction</font></center></h2>
+        <h3><font size = '3' color ='gold'><center>Base on Data Science Team investigation inscurance rate shall be : 465.25 $ per month.</center></color></font></h3> 
         </div>
         """
     st.markdown(html_temp,unsafe_allow_html=True) #a simple html 
