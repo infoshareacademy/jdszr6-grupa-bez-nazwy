@@ -103,9 +103,9 @@ def main():
    
     html_temp="""
         <div>
-        <h1><font size = '10' color = 'green'><center><strong>Health Insurance Prediction</strong></center></font></h1>
-        <h2><font size = '5'><center>Calculation of health insurance charge value <br> and potential offer for cost reduction</font></center></h2>
-        <h3><font size = '3' color ='gold'><center>Standard insurance rate value is: 465.25 $ per month.</center></color></font></h3> 
+        <h1><font size = '8' color = 'green'><center><strong>Health Insurance Prediction</strong></center></font></h1>
+        <h2><font size = '5'><center>Calculation of health insurance charge value <br> and health insurance ratio</font></center></h2>
+        <h3><font size = '4' color ='gold'><center>Single coverage of health insurance is 557.50 $ per month. <br> Our company can propose better offer for our clients.</center></color></font></h3> 
         </div>
         """
     st.markdown(html_temp,unsafe_allow_html=True) #a simple html 
