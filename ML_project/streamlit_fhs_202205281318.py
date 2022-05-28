@@ -115,7 +115,7 @@ def main():
     pass
     weight=st.select_slider("Enter Your weight [kg]", range(5,250))
     pass
-    height=st.select_slider("Enter Your height [m]", range(50,250))
+    height=st.select_slider("Enter Your height [cm]", range(50,250))
     pass
     children = st.selectbox('How many childrens do you have?', range(10))
     pass
