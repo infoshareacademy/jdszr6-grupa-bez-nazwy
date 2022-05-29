@@ -13,22 +13,12 @@ from sklearn.model_selection import train_test_split
 import os
 
 
-# async def main():
-#     async with aiohttp.ClientSession() as session:
-#         async with session.get('http://httpbin.org/get') as resp:
-#             print(resp.status)
-#             print(await resp.text())
-
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
-# loop.run_until_complete(main())
 
-
-# pickle_a=open('sqrt_xgb.pkl',"rb")
-# model_v2=pickle.load(pickle_a) # our model
 cwd = os.getcwd().replace('\\','/') #current working directory
 
-file = pd.read_csv('C:/Users/amd/ML_project/insurance.csv')
+file = pd.read_csv('C:\Projekty\jdszr6-grupa-bez-nazwy\ML_project/insurance.csv')
 
 file['user_ID'] = pd.DataFrame(file.index).astype(int)
 file = file[['user_ID', 'age', 'sex', 'bmi', 'children', 'smoker', 'region', 'charges']]
@@ -59,6 +49,13 @@ model_v2=xgb.XGBRegressor( base_score=0.5, booster='gbtree', colsample_bylevel=1
 
 model_v2.fit(X_train.to_numpy(),y_train_sqrt.to_numpy())
 
+sum_charges = round(y_test.sum(),2)
+no_records = len(y_test)
+pop = 10*(no_records/0.3)
+min_rate = round(sum_charges / pop , 2)
+earn_rate_v = round(1.12 * min_rate, 2)
+
+
 
 def predict_chance(model, df_pred):
     prediction = round(float(model.predict(df_pred))**2,2) #predictions using our model
@@ -76,17 +73,17 @@ def assign_to_group(df_pred, pred): #assign client to group according to charges
         group = groups[2]
     return group
 
-def get_discount(df_pred, pred):
-    discounts = ['10%', '5%', '2%']
+def offer_insurance_rate(df_pred, pred):
+    # discounts = ['6%', '3%', '2%']
     limit_1 = float(df_pred['age']) * 295 
     limit_2 = float(df_pred['age']) * 295 + 20000
     if float(pred) < limit_1:
-        discount = discounts[0]
+        rate = round(0.94 * earn_rate_v,2)
     elif float(pred) < limit_2:
-        discount = discounts[1]
+        rate = round(0.97 * earn_rate_v,2)
     else:
-        discount = discounts[2]
-    return discount
+        rate = round(0.98 * earn_rate_v,2)
+    return rate
 
 def value_on_hist(target, values):
     bins = 100
@@ -103,11 +100,12 @@ def value_on_hist(target, values):
                     color = "red", rotation = 90, verticalalignment = 'center', horizontalalignment = 'center')
 
 def main():
-    # st.title("Health Insurance Prediction") #simple title for the app
+   
     html_temp="""
         <div>
-        <h1><font size = '10' color = 'green'><center><strong>Health Insurance Prediction</strong></center></font></h1>
-        <h2><font size = '5'><center>Calculation of health insurance charge value <br> and potential offer for cost reduction</font></center></h2>
+        <h1><font size = '8' color = 'green'><center><strong>Health Insurance Prediction</strong></center></font></h1>
+        <h2><font size = '5'><center>Calculation of health insurance charge value <br> and health insurance ratio</font></center></h2>
+        <h3><font size = '4' color ='gold'><center>Single coverage of health insurance is 557.50 $ per month. <br> Our company can propose better offer for our clients.</center></color></font></h3> 
         </div>
         """
     st.markdown(html_temp,unsafe_allow_html=True) #a simple html 
@@ -117,7 +115,7 @@ def main():
     pass
     weight=st.select_slider("Enter Your weight [kg]", range(5,250))
     pass
-    height=st.select_slider("Enter Your height [m]", range(50,250))
+    height=st.select_slider("Enter Your height [cm]", range(50,250))
     pass
     children = st.selectbox('How many childrens do you have?', range(10))
     pass
@@ -145,16 +143,16 @@ def main():
 
     prediction = ""
     group = ""
-    discount =""
+    rate =""
 
     if st.button("Predict"): #result will be displayed if button is pressed
         prediction = predict_chance(model_v2, df_pred)
         group = assign_to_group(df_pred, prediction)
-        discount = get_discount(df_pred, prediction)
+        rate = offer_insurance_rate(df_pred, prediction)
         
         st.success("The predicted value of client's charges is: {}".format(prediction))
         st.success("                        Client assigned to: \"{}\" group".format(group))
-        st.success("                        We can offer discount: {} of Your charge value ".format(discount))
+        st.success("                        We can offer insurance rate: {} $ per month".format(rate))
         st.set_option('deprecation.showPyplotGlobalUse', False)
         st.pyplot(fig=value_on_hist(prediction, file["charges"]))
 
