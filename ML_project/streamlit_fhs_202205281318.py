@@ -18,7 +18,7 @@ asyncio.set_event_loop(loop)
 
 cwd = os.getcwd().replace('\\','/') #current working directory
 
-file = pd.read_csv('C:/Users/andrz/Desktop/ISA/Projekt/jdszr6-grupa-bez-nazwy/ML_project/insurance.csv')
+file = pd.read_csv(cwd+'/ML_project/insurance.csv')
 
 file['user_ID'] = pd.DataFrame(file.index).astype(int)
 file = file[['user_ID', 'age', 'sex', 'bmi', 'children', 'smoker', 'region', 'charges']]
