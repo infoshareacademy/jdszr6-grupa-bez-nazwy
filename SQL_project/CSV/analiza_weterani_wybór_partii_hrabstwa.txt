@@ -1,3 +1,0 @@
-"party","średnia_liczba_weteranów","liczba_wygranych"
-Democrat,10633.87,708
-Republican,5658.03,2091
